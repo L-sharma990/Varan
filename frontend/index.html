@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seat Allocation | Login</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .glass-panel {
+            background: rgba(10, 10, 10, 0.85);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(45, 212, 191, 0.2);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-black text-gray-200 flex items-center justify-center p-4">
+
+    <div class="glass-panel rounded-3xl w-full max-w-4xl overflow-hidden flex flex-col md:flex-row shadow-2xl relative">
+        
+        <!-- Left Banner -->
+        <div class="w-full md:w-5/12 bg-[#0a0a0a] border-r border-teal-500/20 text-white p-10 flex flex-col justify-between hidden md:flex">
+            <div>
+                <h1 class="text-4xl font-bold tracking-tight mb-4">Centralized Seat Allocation</h1>
+                <p class="text-gray-400 mt-4 leading-relaxed">Your gateway to Nexus University. Register, submit your choices, and track your allotment seamlessly.</p>
+            </div>
+            
+            <div class="space-y-4 text-sm mt-8">
+                <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 rounded-full bg-[#0a0a0a]/20 flex items-center justify-center">1</div>
+                    <span>Register / Login</span>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 rounded-full bg-[#0a0a0a]/20 flex items-center justify-center">2</div>
+                    <span>Update Profile & Choices</span>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 rounded-full bg-[#0a0a0a]/20 flex items-center justify-center">3</div>
+                    <span>Await Allocation Results</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Form Area -->
+        <div class="w-full md:w-7/12 p-8 md:p-12 relative">
+            <!-- Tabs -->
+            <div class="flex space-x-8 mb-8 border-b border-gray-800">
+                <button id="tab-login" onclick="switchTab('login')" class="pb-2 font-semibold text-teal-500 border-b-2 border-teal-500">Login</button>
+                <button id="tab-register" onclick="switchTab('register')" class="pb-2 font-medium text-gray-500 hover:text-gray-400">Register</button>
+            </div>
+            
+            <div id="error-message" class="hidden mb-4 p-3 bg-red-50 text-red-600 rounded-lg text-sm border border-red-200"></div>
+            <div id="success-message" class="hidden mb-4 p-3 bg-green-50 text-green-600 rounded-lg text-sm border border-green-200"></div>
+
+            <!-- Login Form -->
+            <form id="login-form" class="space-y-5 transition-all duration-300 transform opacity-100 translate-x-0" onsubmit="handleLogin(event)">
+                <div>
+                    <label class="block text-sm font-medium text-gray-400 mb-1">Roll Number / User ID</label>
+                    <input type="text" id="login-rollno" required class="w-full px-4 py-2.5 rounded-xl border border-gray-700 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition bg-[#111] focus:bg-[#0a0a0a]" placeholder="Enter your roll no (e.g. 1001, or 'admin')">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-400 mb-1">Password</label>
+                    <input type="password" id="login-password" required class="w-full px-4 py-2.5 rounded-xl border border-gray-700 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition bg-[#111] focus:bg-[#0a0a0a]" placeholder="••••••••">
+                </div>
+                <button type="submit" class="w-full bg-teal-500 hover:bg-teal-400 text-black font-semibold py-3 rounded-xl transition shadow-lg shadow-teal-500/20">Sign In</button>
+            </form>
+
+            <!-- Register Form -->
+            <form id="register-form" class="hidden space-y-4 h-[400px] overflow-y-auto pr-2 custom-scrollbar transition-all duration-300" onsubmit="handleRegister(event)">
+                <!-- Account Info -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-400 mb-1">Roll No / Application No *</label>
+                        <input type="text" id="reg-rollno" required class="w-full px-3 py-2 rounded-lg border border-gray-700 text-sm focus:ring-2 focus:ring-teal-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-400 mb-1">Password *</label>
+                        <input type="password" id="reg-password" required class="w-full px-3 py-2 rounded-lg border border-gray-700 text-sm focus:ring-2 focus:ring-teal-500 outline-none">
+                    </div>
+                </div>
+
+                <!-- Personal Info -->
+                <h3 class="text-sm font-semibold text-gray-200 border-b pb-1 mt-4">Personal Details</h3>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="col-span-2">
+                        <label class="block text-xs font-medium text-gray-400 mb-1">Full Name *</label>
+                        <input type="text" id="reg-name" required class="w-full px-3 py-2 rounded-lg border border-gray-700 text-sm focus:ring-2 focus:ring-teal-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-400 mb-1">Date of Birth</label>
+                        <input type="date" id="reg-dob" class="w-full px-3 py-2 rounded-lg border border-gray-700 text-sm focus:ring-2 focus:ring-teal-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-400 mb-1">Gender</label>
+                        <select id="reg-gender" class="w-full px-3 py-2 rounded-lg border border-gray-700 text-sm focus:ring-2 focus:ring-teal-500 outline-none">
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-400 mb-1">Phone *</label>
+                        <input type="text" id="reg-phone" required class="w-full px-3 py-2 rounded-lg border border-gray-700 text-sm focus:ring-2 focus:ring-teal-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-400 mb-1">Email *</label>
+                        <input type="email" id="reg-email" required class="w-full px-3 py-2 rounded-lg border border-gray-700 text-sm focus:ring-2 focus:ring-teal-500 outline-none">
+                    </div>
+                    <div class="col-span-2">
+                        <label class="block text-xs font-medium text-gray-400 mb-1">Category</label>
+                        <select id="reg-category" class="w-full px-3 py-2 rounded-lg border border-gray-700 text-sm focus:ring-2 focus:ring-teal-500 outline-none">
+                            <option value="OPEN">OPEN</option>
+                            <option value="OBC-NCL">OBC-NCL</option>
+                            <option value="SC">SC</option>
+                            <option value="ST">ST</option>
+                            <option value="EWS">EWS</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Parents Info -->
+                <h3 class="text-sm font-semibold text-gray-200 border-b pb-1 mt-4">Parent Details</h3>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-400 mb-1">Father's Name</label>
+                        <input type="text" id="reg-fname" class="w-full px-3 py-2 rounded-lg border border-gray-700 text-sm focus:ring-2 focus:ring-teal-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-400 mb-1">Mother's Name</label>
+                        <input type="text" id="reg-mname" class="w-full px-3 py-2 rounded-lg border border-gray-700 text-sm focus:ring-2 focus:ring-teal-500 outline-none">
+                    </div>
+                </div>
+
+                <!-- Exam Details -->
+                <h3 class="text-sm font-semibold text-gray-200 border-b pb-1 mt-4">Examination (Rank)</h3>
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 mb-1">JEE Main Rank *</label>
+                    <input type="number" id="reg-rank" required min="1" class="w-full px-3 py-2 rounded-lg border border-gray-700 text-sm focus:ring-2 focus:ring-teal-500 outline-none shadow-sm bg-[#1a1a1a] border-teal-500/50 text-teal-400">
+                    <p class="text-xs text-gray-500 mt-1">This rank determines allocation priority.</p>
+                </div>
+                <div class="grid grid-cols-2 gap-4 mt-3">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-400 mb-1">JEE Adv Roll No (Optional)</label>
+                        <input type="text" id="reg-adv-rollno" class="w-full px-3 py-2 rounded-lg border border-gray-700 text-sm focus:ring-2 focus:ring-teal-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-400 mb-1">JEE Adv Rank (Optional)</label>
+                        <input type="number" id="reg-adv-rank" min="1" class="w-full px-3 py-2 rounded-lg border border-gray-700 text-sm focus:ring-2 focus:ring-teal-500 outline-none">
+                    </div>
+                </div>
+                <p class="text-xs text-red-500 mt-1 hidden" id="adv-warn">Both Roll No and Rank are required for JEE Advance Eligibility. Inputs ignored.</p>
+
+                <div class="pt-4">
+                    <button type="submit" class="w-full bg-teal-500 hover:bg-teal-400 text-black font-semibold py-3 rounded-xl transition shadow-lg shadow-teal-500/20">Register Account</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8080/api';
+
+        function checkAuth() {
+            const user = JSON.parse(localStorage.getItem('user'));
+            if(user) {
+                if(user.role === 'admin') window.location.href = 'admin.html';
+                else window.location.href = 'dashboard.html';
+            }
+        }
+        checkAuth(); // Redirect if already logged in
+
+        function switchTab(tab) {
+            const loginBtn = document.getElementById('tab-login');
+            const regBtn = document.getElementById('tab-register');
+            const loginForm = document.getElementById('login-form');
+            const regForm = document.getElementById('register-form');
+            const err = document.getElementById('error-message');
+            const suc = document.getElementById('success-message');
+            
+            err.classList.add('hidden');
+            suc.classList.add('hidden');
+
+            if (tab === 'login') {
+                loginBtn.classList.replace('text-gray-500', 'text-teal-500');
+                loginBtn.classList.replace('hover:text-gray-400', 'border-teal-500');
+                loginBtn.classList.add('border-b-2', 'font-semibold');
+                loginBtn.classList.remove('font-medium');
+                
+                regBtn.classList.replace('text-teal-500', 'text-gray-500');
+                regBtn.classList.remove('border-b-2', 'border-teal-500', 'font-semibold');
+                regBtn.classList.add('hover:text-gray-400', 'font-medium');
+
+                loginForm.classList.remove('hidden');
+                regForm.classList.add('hidden');
+            } else {
+                regBtn.classList.replace('text-gray-500', 'text-teal-500');
+                regBtn.classList.replace('hover:text-gray-400', 'border-teal-500');
+                regBtn.classList.add('border-b-2', 'font-semibold');
+                regBtn.classList.remove('font-medium');
+                
+                loginBtn.classList.replace('text-teal-500', 'text-gray-500');
+                loginBtn.classList.remove('border-b-2', 'border-teal-500', 'font-semibold');
+                loginBtn.classList.add('hover:text-gray-400', 'font-medium');
+
+                regForm.classList.remove('hidden');
+                loginForm.classList.add('hidden');
+            }
+        }
+
+        function showMessage(type, msg) {
+            const err = document.getElementById('error-message');
+            const suc = document.getElementById('success-message');
+            if (type === 'error') {
+                err.textContent = msg;
+                err.classList.remove('hidden');
+                suc.classList.add('hidden');
+            } else {
+                suc.textContent = msg;
+                suc.classList.remove('hidden');
+                err.classList.add('hidden');
+            }
+        }
+
+        async function handleLogin(e) {
+            e.preventDefault();
+            const rollno = document.getElementById('login-rollno').value;
+            const password = document.getElementById('login-password').value;
+
+            try {
+                const res = await fetch(`${API_BASE}/login`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({rollno, password})
+                });
+                const data = await res.json();
+                
+                if(!res.ok) throw new Error(data.error || 'Login failed');
+                
+                localStorage.setItem('user', JSON.stringify(data.user));
+                
+                if(data.user.role === 'admin') window.location.href = 'admin.html';
+                else window.location.href = 'dashboard.html';
+                
+            } catch (err) {
+                showMessage('error', err.message);
+            }
+        }
+
+        async function handleRegister(e) {
+            e.preventDefault();
+            
+            let adv_rollno = document.getElementById('reg-adv-rollno').value.trim();
+            let adv_rank = document.getElementById('reg-adv-rank').value.trim();
+
+            if ((adv_rollno && !adv_rank) || (!adv_rollno && adv_rank)) {
+                adv_rollno = '';
+                adv_rank = '';
+                document.getElementById('adv-warn').classList.remove('hidden');
+            }
+
+            const payload = {
+                rollno: document.getElementById('reg-rollno').value,
+                password: document.getElementById('reg-password').value,
+                name: document.getElementById('reg-name').value,
+                dob: document.getElementById('reg-dob').value,
+                gender: document.getElementById('reg-gender').value,
+                phone: document.getElementById('reg-phone').value,
+                email: document.getElementById('reg-email').value,
+                category: document.getElementById('reg-category').value,
+                f_name: document.getElementById('reg-fname').value,
+                m_name: document.getElementById('reg-mname').value,
+                jee_rank: document.getElementById('reg-rank').value,
+                jee_adv_rollno: adv_rollno,
+                jee_adv_rank: adv_rank
+            };
+
+            try {
+                const res = await fetch(`${API_BASE}/register`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                
+                if(!res.ok) throw new Error(data.error || 'Registration failed');
+                
+                showMessage('success', "Registration Successful! Please login.");
+                setTimeout(() => switchTab('login'), 2000);
+            } catch (err) {
+                showMessage('error', err.message);
+            }
+        }
+    </script>
+</body>
+</html>

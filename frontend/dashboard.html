@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seat Allocation | Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #000; }
+        .glass-panel { background: rgba(15, 15, 15, 0.95); box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
+    </style>
+</head>
+<body class="min-h-screen text-gray-200">
+    <!-- Navbar -->
+    <nav class="bg-teal-500 text-white shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center space-x-3">
+                    <div class="font-bold text-xl tracking-tight">Candidate Dashboard</div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span id="nav-username" class=" font-medium">Hello, Student</span>
+                    <button onclick="logout()" class="bg-teal-400 hover:bg-indigo-800 px-4 py-2 rounded-lg text-sm font-medium transition">Logout</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col md:flex-row gap-8">
+        
+        <!-- Sidebar Navigation (Tabs) -->
+        <div class="w-full md:w-64 flex-shrink-0">
+            <div class="glass-panel rounded-xl overflow-hidden shadow-sm border border-gray-800">
+                <ul class="flex flex-col">
+                    <li>
+                        <button onclick="switchView('profile')" id="btn-profile" class="w-full text-left px-6 py-4 font-medium bg-[#111] text-teal-400 border-l-4 border-teal-500 transition">My Profile</button>
+                    </li>
+                    <li>
+                        <button onclick="switchView('choices')" id="btn-choices" class="w-full text-left px-6 py-4 font-medium text-gray-400 hover:bg-[#111] border-l-4 border-transparent transition">Fill Choices</button>
+                    </li>
+                    <li>
+                        <button onclick="switchView('results')" id="btn-results" class="w-full text-left px-6 py-4 font-medium text-gray-400 hover:bg-[#111] border-l-4 border-transparent transition">Seat Allotment</button>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Lock status indicator -->
+            <div class="mt-6 p-4 rounded-xl border border-blue-100 bg-blue-50 text-blue-800 text-sm hidden" id="status-card">
+                <div class="font-bold mb-1">System Status</div>
+                <div id="status-text">Checking...</div>
+            </div>
+        </div>
+
+        <!-- View Container -->
+        <div class="flex-1 glass-panel rounded-xl border border-gray-800 p-8 shadow-sm">
+
+            <div id="msg-alert" class="hidden mb-6 p-4 rounded-lg text-sm font-medium"></div>
+
+            <!-- Profile View -->
+            <div id="view-profile" class="space-y-6">
+                <div class="flex justify-between items-center border-b pb-4">
+                    <h2 class="text-2xl font-bold text-white">Personal Details</h2>
+                    <button id="edit-btn" onclick="toggleEdit()" class="px-4 py-2 bg-[#1a1a1a] text-gray-400 rounded-lg hover:bg-[#222] text-sm font-medium transition">Edit Profile</button>
+                </div>
+                
+                <form id="profile-form" onsubmit="saveProfile(event)">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div><label class="block text-sm font-medium text-gray-500 mb-1">Name</label><input type="text" id="prof-name" disabled class="w-full px-3 py-2 rounded-lg border border-gray-800 bg-[#111] text-gray-200"></div>
+                        <div><label class="block text-sm font-medium text-gray-500 mb-1">JEE Main Rank</label><input type="text" id="prof-rank" disabled class="w-full px-3 py-2 rounded-lg border border-gray-800 bg-[#1a1a1a] text-gray-200 font-bold"></div>
+                        <div><label class="block text-sm font-medium text-gray-500 mb-1">JEE Adv Roll No</label><input type="text" id="prof-adv-rollno" disabled class="w-full px-3 py-2 rounded-lg border border-gray-800 bg-[#1a1a1a] text-gray-200 font-bold"></div>
+                        <div><label class="block text-sm font-medium text-gray-500 mb-1">JEE Adv Rank</label><input type="text" id="prof-adv-rank" disabled class="w-full px-3 py-2 rounded-lg border border-gray-800 bg-[#1a1a1a] text-gray-200 font-bold"></div>
+                        
+                        <div><label class="block text-sm font-medium text-gray-500 mb-1">Category</label>
+                            <select id="prof-category" disabled class="w-full px-3 py-2 rounded-lg border border-gray-800 bg-[#111] text-gray-200">
+                                <option value="OPEN">OPEN</option><option value="OBC-NCL">OBC-NCL</option><option value="SC">SC</option><option value="ST">ST</option><option value="EWS">EWS</option>
+                            </select></div>
+                        <div><label class="block text-sm font-medium text-gray-500 mb-1">Gender</label>
+                            <select id="prof-gender" disabled class="w-full px-3 py-2 rounded-lg border border-gray-800 bg-[#111] text-gray-200">
+                                <option value="Male">Male</option><option value="Female">Female</option><option value="Other">Other</option>
+                            </select></div>
+
+                        <div><label class="block text-sm font-medium text-gray-500 mb-1">Email</label><input type="text" id="prof-email" disabled class="w-full px-3 py-2 rounded-lg border border-gray-800 bg-[#111] text-gray-200"></div>
+                        <div><label class="block text-sm font-medium text-gray-500 mb-1">Phone</label><input type="text" id="prof-phone" disabled class="w-full px-3 py-2 rounded-lg border border-gray-800 bg-[#111] text-gray-200"></div>
+                        
+                        <div><label class="block text-sm font-medium text-gray-500 mb-1">Father's Name</label><input type="text" id="prof-fname" disabled class="w-full px-3 py-2 rounded-lg border border-gray-800 bg-[#111] text-gray-200"></div>
+                        <div><label class="block text-sm font-medium text-gray-500 mb-1">Mother's Name</label><input type="text" id="prof-mname" disabled class="w-full px-3 py-2 rounded-lg border border-gray-800 bg-[#111] text-gray-200"></div>
+                    </div>
+
+                    <div id="save-actions" class="mt-8 hidden flex space-x-4">
+                        <button type="submit" class="bg-teal-500 hover:bg-teal-400 text-black px-6 py-2 rounded-lg font-medium transition shadow">Save Changes</button>
+                        <button type="button" onclick="cancelEdit()" class="bg-gray-200 hover:bg-gray-300 text-gray-200 px-6 py-2 rounded-lg font-medium transition">Cancel</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Choices View -->
+            <div id="view-choices" class="hidden space-y-6">
+                <div class="border-b pb-4 flex justify-between items-center">
+                    <div>
+                        <h2 class="text-2xl font-bold text-white">Choice Filling</h2>
+                        <p class="text-sm text-gray-500 mt-1">Select and reorder your preferred courses.</p>
+                    </div>
+                    <div id="lock-badge" class="hidden px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold uppercase tracking-wide">Locked</div>
+                </div>
+
+                <div id="choices-container">
+                    <!-- Add Choice Form -->
+                    <div id="add-choice-bar" class="flex flex-col md:flex-row gap-4 bg-[#111] p-4 rounded-xl border border-gray-800 mb-6 items-end">
+                        <div class="flex-1 w-full">
+                            <label class="block text-xs font-semibold text-gray-400 mb-1 uppercase tracking-wider">Available Courses</label>
+                            <select id="course-select" class="w-full text-black px-3 py-2 rounded-lg border border-gray-700 focus:ring-2 focus:ring-teal-500 outline-none text-sm"></select>
+                        </div>
+                        <button onclick="addChoice()" class="bg-teal-500 hover:bg-teal-400 text-black px-6 py-2 rounded-lg font-medium transition shadow-sm w-full md:w-auto h-[42px]">Add Choice</button>
+                    </div>
+
+                    <!-- Choices Table -->
+                    <div class="overflow-x-auto rounded-xl border border-gray-800 mb-6">
+                        <table class="min-w-full divide-y divide-gray-800">
+                            <thead class="bg-[#111]">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Pref</th>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Course Name</th>
+                                    <th class="px-6 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider w-24">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="choices-tbody" class="bg-[#0a0a0a] divide-y divide-gray-800">
+                                <!-- JS Populated -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="flex justify-between items-center" id="choices-actions">
+                        <p class="text-sm text-gray-500">* You can add as many choices as available.</p>
+                        <div class="space-x-3">
+                            <button onclick="saveChoices()" class="bg-blue-600 hover:bg-blue-700 text-black px-6 py-2 rounded-lg font-medium transition shadow">Save Choices</button>
+                            <button onclick="lockChoices()" class="bg-red-600 hover:bg-red-700 text-black px-6 py-2 rounded-lg font-medium transition shadow">Final Lock</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results View -->
+            <div id="view-results" class="hidden space-y-6">
+                <div class="border-b pb-4">
+                    <h2 class="text-2xl font-bold text-white">Round 1 Allocation Result</h2>
+                    <p class="text-sm text-gray-500 mt-1">Based on your choices and JEE rank.</p>
+                </div>
+
+                <div id="result-content" class="min-h-[200px] flex items-center justify-center">
+                    <div class="text-center rounded-2xl bg-[#111] p-10 border border-gray-800 w-full" id="result-pending">
+                        <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <h3 class="text-lg font-bold text-gray-400">Results Not Published Yet</h3>
+                        <p class="text-gray-500 mt-2">The administration has not released the seat allocations. Please check back later.</p>
+                    </div>
+
+                    <div class="hidden w-full" id="result-alloted">
+                        <div class="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-2xl p-8 mb-6 shadow-sm">
+                            <div class="flex items-center space-x-4 mb-4">
+                                <div class="bg-green-500 rounded-full p-2 text-white">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                </div>
+                                <h3 class="text-2xl font-bold text-green-800">Congratulations! Seat Allotted</h3>
+                            </div>
+                            
+                            <div class="bg-[#0a0a0a] rounded-xl p-6 border border-green-100 shadow-sm space-y-3">
+                                <div class="flex justify-between border-b border-gray-800 pb-2"><span class="text-gray-500">Course</span><span class="font-bold text-gray-200" id="res-course"></span></div>
+                                <div class="flex justify-between pb-2"><span class="text-gray-500">Status</span><span class="font-bold text-yellow-600" id="res-status"></span></div>
+                            </div>
+                        </div>
+
+                        <div class="flex justify-center" id="payment-action">
+                            <button onclick="window.location.href='payment.html'" class="bg-teal-500 hover:bg-teal-400 text-black px-8 py-3 rounded-xl font-bold text-lg transition shadow-xl shadow-teal-500/20 w-full md:w-1/2">
+                                Pay ₹1 (Simulation)
+                            </button>
+                        </div>
+                        <div class="flex justify-center hidden" id="download-action">
+                            <button onclick="alert('Downloading Allotment Letter...')" class="bg-green-600 hover:bg-green-700 text-black px-8 py-3 rounded-xl font-bold text-lg transition shadow-xl shadow-green-200 w-full md:w-1/2 flex items-center justify-center">
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                                Download Allotment Letter
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="hidden text-center rounded-2xl bg-red-50 p-10 border border-red-200 w-full" id="result-none">
+                        <svg class="w-16 h-16 text-red-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <h3 class="text-lg font-bold text-red-700">No Seat Allotted</h3>
+                        <p class="text-red-500 mt-2">Unfortunately, based on your JEE rank and choices, no seat could be allotted in Round 1.</p>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        const API_BASE = 'http://localhost:8080/api';
+        let user = JSON.parse(localStorage.getItem('user'));
+        let config = {};
+        let sysCourses = [];
+        let myChoices = [];
+        let isLocked = false;
+        
+        if (!user || user.role === 'admin') {
+            window.location.href = 'index.html';
+        }
+
+        document.getElementById('nav-username').textContent = `Hello, ${user.name} (Rank: ${user.jee_rank})`;
+
+        async function initDashboard() {
+            await Promise.all([ fetchProfile(), fetchConfig(), fetchCourses(), fetchChoices() ]);
+            loadChoicesTable();
+            checkSystemState();
+        }
+
+        // --- View Management ---
+        function switchView(view) {
+            ['profile', 'choices', 'results'].forEach(v => {
+                document.getElementById(`view-${v}`).classList.add('hidden');
+                const btn = document.getElementById(`btn-${v}`);
+                btn.classList.remove('bg-[#111]', 'text-teal-400', 'border-teal-500');
+                btn.classList.add('text-gray-400', 'border-transparent');
+            });
+            
+            document.getElementById(`view-${view}`).classList.remove('hidden');
+            const activeBtn = document.getElementById(`btn-${view}`);
+            activeBtn.classList.remove('text-gray-400', 'border-transparent');
+            activeBtn.classList.add('bg-[#111]', 'text-teal-400', 'border-teal-500');
+
+            if(view === 'results') loadResults();
+        }
+
+        function showAlert(msg, isError=false) {
+            const el = document.getElementById('msg-alert');
+            el.textContent = msg;
+            el.className = `mb-6 p-4 rounded-lg text-sm font-medium ${isError ? 'bg-red-50 text-red-700 border border-red-200' : 'bg-green-50 text-green-700 border border-green-200'}`;
+            el.classList.remove('hidden');
+            setTimeout(() => el.classList.add('hidden'), 3000);
+        }
+
+        // --- Configuration & State ---
+        async function fetchConfig() {
+            try {
+                const res = await fetch(`${API_BASE}/config`);
+                config = await res.json();
+            } catch(e) { console.error("Could not load config"); }
+        }
+
+        function checkSystemState() {
+            const statusCard = document.getElementById('status-card');
+            const statusText = document.getElementById('status-text');
+            statusCard.classList.remove('hidden');
+
+            if (isLocked) {
+                statusText.textContent = "Your choices are locked.";
+                disableChoiceActions();
+            } else if (!config.is_choice_filling_open) {
+                statusText.textContent = "Choice filling is closed.";
+                disableChoiceActions();
+            } else {
+                statusText.innerHTML = "<span class='text-green-600'>Choice filling is Open.</span>";
+            }
+        }
+
+        // --- Profile Management ---
+        async function fetchProfile() {
+            try {
+                const res = await fetch(`${API_BASE}/user/${user.id}`);
+                const data = await res.json();
+                user = {...user, ...data};
+                document.getElementById('prof-name').value = user.name || '';
+                document.getElementById('prof-rank').value = user.jee_rank || '';
+                document.getElementById('prof-category').value = user.category || 'OPEN';
+                document.getElementById('prof-gender').value = user.gender || 'Male';
+                document.getElementById('prof-email').value = user.email || '';
+                document.getElementById('prof-phone').value = user.phone || '';
+                document.getElementById('prof-fname').value = user.f_name || '';
+                document.getElementById('prof-mname').value = user.m_name || '';
+                document.getElementById('prof-adv-rollno').value = user.jee_adv_rollno || 'Not Eligible';
+                document.getElementById('prof-adv-rank').value = user.jee_adv_rank || 'Not Eligible';
+            } catch(e) { console.error("Error loading profile"); }
+        }
+
+        function toggleEdit() {
+            if (isLocked) {
+                return showAlert("Cannot edit profile after choices are locked.", true);
+            }
+            const inputs = document.querySelectorAll('#profile-form input, #profile-form select');
+            inputs.forEach(el => { if(el.id !== 'prof-rank') el.disabled = false });
+            inputs.forEach(el => el.classList.add('bg-[#0a0a0a]'));
+            inputs.forEach(el => el.classList.remove('bg-[#111]'));
+            
+            document.getElementById('save-actions').classList.remove('hidden');
+            document.getElementById('edit-btn').classList.add('hidden');
+        }
+
+        function cancelEdit() {
+            const inputs = document.querySelectorAll('#profile-form input, #profile-form select');
+            inputs.forEach(el => el.disabled = true);
+            inputs.forEach(el => el.classList.remove('bg-[#0a0a0a]'));
+            inputs.forEach(el => el.classList.add('bg-[#111]'));
+            
+            document.getElementById('save-actions').classList.add('hidden');
+            document.getElementById('edit-btn').classList.remove('hidden');
+            fetchProfile(); // reset values
+        }
+
+        async function saveProfile(e) {
+            e.preventDefault();
+            const payload = {
+                id: user.id,
+                name: document.getElementById('prof-name').value,
+                category: document.getElementById('prof-category').value,
+                gender: document.getElementById('prof-gender').value,
+                email: document.getElementById('prof-email').value,
+                phone: document.getElementById('prof-phone').value,
+                f_name: document.getElementById('prof-fname').value,
+                m_name: document.getElementById('prof-mname').value,
+                jee_rank: user.jee_rank,
+                jee_adv_rollno: user.jee_adv_rollno,
+                jee_adv_rank: user.jee_adv_rank
+            };
+            try {
+                const res = await fetch(`${API_BASE}/user/update`, {
+                    method: 'PUT',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(payload)
+                });
+                if(res.ok) {
+                    showAlert("Profile Updated!");
+                    cancelEdit();
+                } else showAlert("Error updating profile", true);
+            } catch(e) { showAlert("Error updating profile", true); }
+        }
+
+        // --- Choice Management ---
+        async function fetchCourses() {
+            try {
+                const res = await fetch(`${API_BASE}/courses`);
+                sysCourses = await res.json();
+                
+                const select = document.getElementById('course-select');
+                select.innerHTML = '';
+                sysCourses.forEach(course => {
+                    const opt = document.createElement('option');
+                    opt.value = course.id;
+                    opt.textContent = `${course.course_name}`;
+                    select.appendChild(opt);
+                });
+            } catch(e) { console.error(e); }
+        }
+
+        async function fetchChoices() {
+            try {
+                const res = await fetch(`${API_BASE}/choices/${user.id}`);
+                const data = await res.json();
+                myChoices = data.map(d => ({ course_id: parseInt(d.course_id), course: d.course_name }));
+                if(data.length > 0 && data[0].is_locked) {
+                    isLocked = true;
+                }
+            } catch(e) { console.error(e); }
+        }
+
+        function loadChoicesTable() {
+            const tbody = document.getElementById('choices-tbody');
+            tbody.innerHTML = '';
+            
+            if(myChoices.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="3" class="px-6 py-4 text-center text-sm text-gray-500">No choices added yet.</td></tr>';
+                return;
+            }
+
+            myChoices.forEach((choice, index) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="px-6 py-4 text-sm font-medium text-white">${index + 1}</td>
+                    <td class="px-6 py-4 text-sm text-gray-500">${choice.course}</td>
+                    <td class="px-6 py-4 text-center">
+                        <button onclick="removeChoice(${index})" class="text-red-500 hover:text-red-700 bg-red-50 px-2 py-1 rounded text-xs function-btn">Remove</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            if (isLocked) disableChoiceActions();
+        }
+
+        function addChoice() {
+            const select = document.getElementById('course-select');
+            const courseId = parseInt(select.value);
+            const courseObj = sysCourses.find(c => c.id === courseId);
+            
+            if (!courseObj) return;
+            if (myChoices.some(c => c.course_id === courseId)) {
+                return showAlert("Choice already added", true);
+            }
+
+            myChoices.push({ course_id: courseObj.id, course: courseObj.course_name });
+            loadChoicesTable();
+        }
+
+        function removeChoice(index) {
+            myChoices.splice(index, 1);
+            loadChoicesTable();
+        }
+
+        async function saveChoices() {
+            try {
+                const res = await fetch(`${API_BASE}/choices/save`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ user_id: user.id, choices: myChoices })
+                });
+                if(res.ok) showAlert("Choices saved successfully!");
+                else showAlert("Failed to save choices.", true);
+            } catch(e) { showAlert("Error.", true); }
+        }
+
+        async function lockChoices() {
+            if(!confirm("Are you sure? Once locked, choices cannot be edited.")) return;
+            await saveChoices();
+            try {
+                const res = await fetch(`${API_BASE}/choices/lock`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ user_id: user.id })
+                });
+                if(res.ok) {
+                    showAlert("Choices Locked!");
+                    isLocked = true;
+                    checkSystemState();
+                }
+            } catch(e) { showAlert("Error.", true); }
+        }
+
+        function disableChoiceActions() {
+            document.getElementById('add-choice-bar').classList.add('opacity-50', 'pointer-events-none');
+            document.getElementById('choices-actions').classList.add('hidden');
+            document.getElementById('lock-badge').classList.remove('hidden');
+            const btns = document.querySelectorAll('.function-btn');
+            btns.forEach(b => b.classList.add('hidden'));
+        }
+
+        // --- Results ---
+        async function loadResults() {
+            document.getElementById('result-pending').classList.add('hidden');
+            document.getElementById('result-alloted').classList.add('hidden');
+            document.getElementById('result-none').classList.add('hidden');
+
+            try {
+                const res = await fetch(`${API_BASE}/results/${user.id}`);
+                const data = await res.json();
+
+                if (!data.published) {
+                    document.getElementById('result-pending').classList.remove('hidden');
+                } else if (!data.alloted) {
+                    document.getElementById('result-none').classList.remove('hidden');
+                } else {
+                    document.getElementById('result-alloted').classList.remove('hidden');
+                    document.getElementById('res-course').textContent = data.data.course_name;
+                    document.getElementById('res-status').textContent = data.data.status;
+
+                    if (data.data.status === 'Paid') {
+                        document.getElementById('payment-action').classList.add('hidden');
+                        document.getElementById('download-action').classList.remove('hidden');
+                        document.getElementById('res-status').className = "font-bold text-green-600";
+                    }
+                }
+            } catch(e) { console.error("Fetch result failed"); }
+        }
+
+        function logout() {
+            localStorage.removeItem('user');
+            window.location.href = 'index.html';
+        }
+
+        initDashboard();
+    </script>
+</body>
+</html>
