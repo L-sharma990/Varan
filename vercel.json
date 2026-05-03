@@ -1,1 +1,12 @@
-{}
+{
+  "rewrites": [
+    { "source": "/", "destination": "/frontend/index.html" },
+    { "source": "/dashboard", "destination": "/frontend/dashboard.html" },
+    { "source": "/dashboard.html", "destination": "/frontend/dashboard.html" },
+    { "source": "/admin", "destination": "/frontend/admin.html" },
+    { "source": "/admin.html", "destination": "/frontend/admin.html" },
+    { "source": "/payment", "destination": "/frontend/payment.html" },
+    { "source": "/payment.html", "destination": "/frontend/payment.html" }
+  ]
+}
+
