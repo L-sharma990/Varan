@@ -3,6 +3,8 @@ const express = require('express');
 const mysql = require('mysql2/promise');
 const cors = require('cors');
 const bcrypt = require('bcrypt');
+const fs = require('fs');
+const path = require('path');
 
 const app = express();
 app.use(cors());
@@ -15,7 +17,8 @@ const pool = mysql.createPool({
     password: process.env.DB_PASSWORD || '',
     database: process.env.DB_NAME || 'seat_allocation_v2_db',
     port: parseInt(process.env.DB_PORT) || 3306,
-    connectionLimit: 10
+    connectionLimit: 10,
+    multipleStatements: true
 });
 
 pool.getConnection().then(conn => {
@@ -247,6 +250,19 @@ app.post('/api/admin/allocate', async (req, res) => {
         res.status(500).json({ error: "Error during allocation run." });
     } finally {
         conn.release();
+    }
+});
+
+app.post('/api/admin/reset', async (req, res) => {
+    try {
+        const sqlPath = path.join(__dirname, '../sql/reset_demo.sql');
+        const sqlScript = fs.readFileSync(sqlPath, 'utf8');
+        
+        await pool.query(sqlScript);
+        res.json({ message: "System successfully reset to Round 1." });
+    } catch (err) {
+        console.error("Error executing reset_demo.sql:", err);
+        res.status(500).json({ error: "Failed to reset system database." });
     }
 });
 
