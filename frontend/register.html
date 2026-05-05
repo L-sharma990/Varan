@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VARAN | Register</title>
+    <link rel="stylesheet" href="tailwind.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:'Inter',sans-serif;background-color:#09090b;background-image:linear-gradient(rgba(255,255,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.03) 1px,transparent 1px);background-size:32px 32px;color:#fafafa;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+        .font-space{font-family:'Space Grotesk',sans-serif}
+        .card{background:#111113;border:1px solid #1c1c1f;border-radius:16px;transition:all .4s ease}
+        .inp{width:100%;padding:10px 14px;background:#18181b;border:1px solid #27272a;border-radius:10px;color:#fff;font-size:13px;transition:all .3s}
+        .inp:focus{outline:none;border-color:#14b8a6;box-shadow:0 0 0 3px rgba(20,184,166,.1)}
+        .btn-primary{background:linear-gradient(135deg,#14b8a6,#0d9488);color:#000;font-weight:700;padding:12px 28px;border-radius:12px;border:none;cursor:pointer;transition:all .3s;font-size:14px}
+        .btn-primary:hover{box-shadow:0 0 30px rgba(20,184,166,.4);transform:translateY(-1px)}
+        .fade-in{opacity:0;transform:translateY(24px);transition:all .7s cubic-bezier(.16,1,.3,1)}
+        .fade-in.show{opacity:1;transform:translateY(0)}
+        .custom-scrollbar::-webkit-scrollbar{width:5px}.custom-scrollbar::-webkit-scrollbar-thumb{background:#27272a;border-radius:3px}
+    </style>
+</head>
+<body class="flex flex-col min-h-screen relative py-20 px-6">
+    <div class="absolute top-0 left-0 w-full z-50 px-6 py-4">
+        <a href="#" class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-teal-400 to-emerald-600 flex items-center justify-center pulse-glow"><span class="text-black font-black text-lg">V</span></div>
+            <div class="leading-tight"><div class="text-white font-bold text-lg tracking-tight font-space">VARAN</div><div class="text-[9px] text-teal-500 font-semibold tracking-[.2em]">वरण · SELECTION</div></div>
+        </a>
+    </div>
+
+    <div class="w-full max-w-2xl mx-auto z-10 fade-in mt-10">
+        <div class="card p-10">
+            <div id="error-message" class="hidden mb-4 p-3 bg-red-500/10 border border-red-500/20 text-red-400 rounded-lg text-sm"></div>
+            <div id="success-message" class="hidden mb-4 p-3 bg-teal-500/10 border border-teal-500/20 text-teal-400 rounded-lg text-sm"></div>
+            
+            <h3 class="text-2xl font-bold text-white mb-1 font-space">Create an Account</h3>
+            <p class="text-zinc-500 text-sm mb-8">Join to participate in the admission process.</p>
+            
+            <div class="flex items-center justify-between mb-8 relative px-2 mt-4">
+                <div class="absolute left-2 right-2 top-1/2 -translate-y-1/2 h-0.5 bg-zinc-800 z-0"></div>
+                <div class="absolute left-2 top-1/2 -translate-y-1/2 h-0.5 bg-teal-500 z-0 transition-all duration-300" id="progress-bar" style="width: 0%;"></div>
+                
+                <div class="relative z-10 w-8 h-8 rounded-full bg-teal-500 flex items-center justify-center text-black font-bold text-xs step-indicator">1</div>
+                <div class="relative z-10 w-8 h-8 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-500 font-bold text-xs step-indicator">2</div>
+                <div class="relative z-10 w-8 h-8 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-500 font-bold text-xs step-indicator">3</div>
+                <div class="relative z-10 w-8 h-8 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-500 font-bold text-xs step-indicator">4</div>
+            </div>
+
+            <form id="register-form" onsubmit="handleRegister(event)">
+                <!-- STEP 1: Personal -->
+                <div class="form-step" id="step-1">
+                    <h4 class="text-lg font-bold text-white mb-4">Personal Details</h4>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="col-span-2"><label class="block text-[11px] font-bold text-zinc-500 mb-1.5">FULL NAME *</label><input type="text" id="reg-name" required class="inp"></div>
+                        <div><label class="block text-[11px] font-bold text-zinc-500 mb-1.5">DOB</label><input type="date" id="reg-dob" class="inp text-zinc-500"></div>
+                        <div><label class="block text-[11px] font-bold text-zinc-500 mb-1.5">GENDER</label><select id="reg-gender" class="inp text-zinc-400"><option value="Male">Male</option><option value="Female">Female</option><option value="Other">Other</option></select></div>
+                        <div><label class="block text-[11px] font-bold text-zinc-500 mb-1.5">PHONE *</label><input type="text" id="reg-phone" required pattern="^[6-9]\d{9}$" title="Enter a valid 10-digit Indian phone number starting with 6, 7, 8, or 9" class="inp" placeholder="e.g. 9876543210"></div>
+                        <div><label class="block text-[11px] font-bold text-zinc-500 mb-1.5">EMAIL *</label><input type="email" id="reg-email" required pattern="[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,}$" title="Enter a valid email address (e.g. user@domain.com)" class="inp" placeholder="e.g. name@example.com"></div>
+                        <div class="col-span-2"><label class="block text-[11px] font-bold text-zinc-500 mb-1.5">CATEGORY</label><select id="reg-category" class="inp text-zinc-400"><option value="OPEN">OPEN</option><option value="OBC-NCL">OBC-NCL</option><option value="SC">SC</option><option value="ST">ST</option><option value="EWS">EWS</option></select></div>
+                    </div>
+                    <div class="flex justify-end mt-8 border-t border-zinc-800 pt-4">
+                        <button type="button" class="btn-primary py-2 px-6" onclick="nextStep(2)">Next →</button>
+                    </div>
+                </div>
+
+                <!-- STEP 2: Parental -->
+                <div class="form-step hidden" id="step-2">
+                    <h4 class="text-lg font-bold text-white mb-4">Parental Details</h4>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="col-span-2 md:col-span-1"><label class="block text-[11px] font-bold text-zinc-500 mb-1.5">FATHER'S NAME</label><input type="text" id="reg-fname" class="inp"></div>
+                        <div class="col-span-2 md:col-span-1"><label class="block text-[11px] font-bold text-zinc-500 mb-1.5">MOTHER'S NAME</label><input type="text" id="reg-mname" class="inp"></div>
+                    </div>
+                    <div class="flex justify-between mt-8 border-t border-zinc-800 pt-4">
+                        <button type="button" class="py-2 px-6 rounded-lg text-zinc-400 hover:text-white transition bg-zinc-900 border border-zinc-800" onclick="prevStep(1)">← Back</button>
+                        <button type="button" class="btn-primary py-2 px-6" onclick="nextStep(3)">Next →</button>
+                    </div>
+                </div>
+
+                <!-- STEP 3: Academic -->
+                <div class="form-step hidden" id="step-3">
+                    <h4 class="text-lg font-bold text-white mb-4">Academic Details</h4>
+                    <div class="space-y-4">
+                        <div><label class="block text-[11px] font-bold text-zinc-500 mb-1.5">JEE MAIN ROLL NO *</label><input type="text" id="reg-rollno" required pattern="^2026\d{2}$" title="Roll number must be exactly 6 digits starting with 2026 (e.g., 202601)" class="inp" placeholder="e.g. 202601"></div>
+                        <div><label class="block text-[11px] font-bold text-teal-500 mb-1.5">JEE MAIN RANK *</label><input type="number" id="reg-rank" required min="1" class="inp" style="border-color:rgba(20,184,166,.3)"></div>
+                    </div>
+                    <div class="flex justify-between mt-8 border-t border-zinc-800 pt-4">
+                        <button type="button" class="py-2 px-6 rounded-lg text-zinc-400 hover:text-white transition bg-zinc-900 border border-zinc-800" onclick="prevStep(2)">← Back</button>
+                        <button type="button" class="btn-primary py-2 px-6" onclick="nextStep(4)">Next →</button>
+                    </div>
+                </div>
+
+                <!-- STEP 4: Security & Payment -->
+                <div class="form-step hidden" id="step-4">
+                    <h4 class="text-lg font-bold text-white mb-4">Security & Payment</h4>
+                    <div class="space-y-4">
+                        <div><label class="block text-[11px] font-bold text-zinc-500 mb-1.5">CREATE PASSWORD *</label><input type="password" id="reg-password" required pattern="^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{6,}$" title="Password must be at least 6 characters long and include one capital letter, one number, and one special character" class="inp" placeholder="••••••••"></div>
+                        
+                        <div class="p-4 rounded-xl border border-teal-500/30 bg-teal-500/5 mt-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-white text-sm font-bold">Registration Fee</span>
+                                <span class="text-teal-400 font-bold">₹1.00</span>
+                            </div>
+                            <p class="text-zinc-400 text-xs leading-relaxed">A mock payment of ₹1 is required to participate in the allocation rounds. This will be automatically refunded if you Exit the process.</p>
+                        </div>
+                    </div>
+                    <div class="flex justify-between mt-8 border-t border-zinc-800 pt-4">
+                        <button type="button" class="py-2 px-6 rounded-lg text-zinc-400 hover:text-white transition bg-zinc-900 border border-zinc-800" onclick="prevStep(3)">← Back</button>
+                        <button type="submit" class="btn-primary py-2 px-6">Pay ₹1 & Register</button>
+                    </div>
+                </div>
+            </form>
+            <p class="mt-6 text-sm text-zinc-500 text-center">Already have an account? <a href="login.html" class="text-teal-400 font-semibold hover:text-teal-300">Login here</a></p>
+        </div>
+    </div>
+
+<script>
+const API_BASE='http://localhost:8080/api';
+function checkAuth(){const u=JSON.parse(localStorage.getItem('user'));if(u){u.role==='admin'?window.location.href='admin.html':window.location.href='dashboard.html'}}
+checkAuth();
+function showMessage(t,m){const e=document.getElementById('error-message'),s=document.getElementById('success-message');if(t==='error'){e.textContent=m;e.classList.remove('hidden');s.classList.add('hidden')}else{s.textContent=m;s.classList.remove('hidden');e.classList.add('hidden')}}
+
+function updateProgress(step) {
+    document.querySelectorAll('.form-step').forEach(el => el.classList.add('hidden'));
+    document.getElementById(`step-${step}`).classList.remove('hidden');
+    
+    const indicators = document.querySelectorAll('.step-indicator');
+    indicators.forEach((el, idx) => {
+        if (idx < step) {
+            el.className = 'relative z-10 w-8 h-8 rounded-full bg-teal-500 flex items-center justify-center text-black font-bold text-xs step-indicator transition-colors duration-300';
+        } else {
+            el.className = 'relative z-10 w-8 h-8 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-500 font-bold text-xs step-indicator transition-colors duration-300';
+        }
+    });
+    const progress = (step - 1) * 33.33; 
+    document.getElementById('progress-bar').style.width = `${progress}%`;
+}
+
+function nextStep(step) {
+    const currentStepDiv = document.getElementById(`step-${step - 1}`);
+    const inputs = currentStepDiv.querySelectorAll('input, select');
+    let valid = true;
+    for(let i = 0; i < inputs.length; i++) {
+        if (!inputs[i].checkValidity()) {
+            inputs[i].reportValidity();
+            valid = false;
+            break;
+        }
+    }
+    if (!valid) return;
+    updateProgress(step);
+}
+
+function prevStep(step) {
+    updateProgress(step);
+}
+
+async function handleRegister(e){
+    e.preventDefault();
+    const p={rollno:document.getElementById('reg-rollno').value,password:document.getElementById('reg-password').value,name:document.getElementById('reg-name').value,dob:document.getElementById('reg-dob').value,gender:document.getElementById('reg-gender').value,phone:document.getElementById('reg-phone').value,email:document.getElementById('reg-email').value,category:document.getElementById('reg-category').value,f_name:document.getElementById('reg-fname').value,m_name:document.getElementById('reg-mname').value,jee_rank:document.getElementById('reg-rank').value,jee_adv_rollno:'',jee_adv_rank:''};
+    try{
+        const r=await fetch(`${API_BASE}/register`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(p)});
+        const d=await r.json();
+        if(!r.ok)throw new Error(d.error||'Registration failed');
+        showMessage('success','Registration & Payment Successful! Please login.');
+        setTimeout(()=>window.location.href='login.html',2500)
+    }catch(err){
+        showMessage('error',err.message)
+    }
+}
+document.addEventListener('DOMContentLoaded',()=>{const obs=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('show')})},{threshold:.1});document.querySelectorAll('.fade-in').forEach(el=>obs.observe(el))});
+</script>
+</body>
+</html>

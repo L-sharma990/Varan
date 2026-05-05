@@ -1,5 +1,6 @@
 {
   "rewrites": [
+    { "source": "/api/(.*)", "destination": "https://varan-production.up.railway.app/api/$1" },
     { "source": "/", "destination": "/frontend/index.html" },
     { "source": "/dashboard", "destination": "/frontend/dashboard.html" },
     { "source": "/dashboard.html", "destination": "/frontend/dashboard.html" },

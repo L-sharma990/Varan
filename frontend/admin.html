@@ -6,7 +6,7 @@
     <title>Admin Panel | Seat Allocation</title>
     <link rel="stylesheet" href="tailwind.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; }</style>
+    <style>body { font-family: 'Inter', sans-serif; background-color: #09090b; background-image: linear-gradient(rgba(255, 255, 255, .03) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, .03) 1px, transparent 1px); background-size: 32px 32px; color: #fafafa; overflow-x: hidden; -webkit-font-smoothing: antialiased; }</style>
 </head>
 <body class="min-h-screen text-gray-200">
     <!-- Navbar -->
@@ -57,12 +57,20 @@
                     <div class="flex items-center justify-between">
                         <div>
                             <div class="font-semibold">Publish Results</div>
-                            <div class="text-sm text-gray-500">Make Round 1 results visible to students</div>
+                            <div class="text-sm text-gray-500">Make current round results visible</div>
                         </div>
                         <label class="relative inline-flex items-center cursor-pointer">
                             <input type="checkbox" id="toggle-res" class="sr-only peer">
                             <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-[#0a0a0a] after:border-gray-700 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                         </label>
+                    </div>
+
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <div class="font-semibold">Current Round</div>
+                            <div class="text-sm text-gray-500">Set active allocation round</div>
+                        </div>
+                        <input type="number" id="input-round" class="w-20 px-3 py-1 bg-[#111] border border-gray-700 rounded text-white" min="1" max="3">
                     </div>
 
                     <div class="mt-8 pt-4 border-t">
@@ -71,27 +79,40 @@
                 </div>
             </div>
 
-            <!-- Algorithm Launcher -->
-            <div class="bg-[#0a0a0a] rounded-xl shadow-sm border border-gray-800 p-6 flex flex-col justify-between">
-                <div>
-                    <h2 class="text-xl font-bold text-gray-200 mb-6 border-b pb-2">Seat Allocation Engine</h2>
+            <div class="flex flex-col gap-8">
+                <!-- Genesis Setup -->
+                <div class="bg-[#0a0a0a] rounded-xl shadow-sm border border-gray-800 p-6">
+                    <h2 class="text-xl font-bold text-gray-200 mb-4 border-b pb-2">Genesis Setup (Branches)</h2>
+                    <p class="text-xs text-gray-500 mb-4">Set total capacities. Locked after Round 1 results are published.</p>
                     
-                    <div class="bg-blue-50 border border-blue-100 text-blue-800 p-4 rounded-lg text-sm mb-6">
-                        <strong>Algorithm Rules:</strong>
-                        <ul class="list-disc pl-5 mt-2 space-y-1">
-                            <li>Users sorted ascending by JEE Rank</li>
-                            <li>Checks user top choice first</li>
-                            <li>Cap enforced automatically based on Course setup (3 seats)</li>
-                        </ul>
+                    <div id="branches-setup" class="space-y-3 mb-4">
+                        <!-- Populated by JS -->
                     </div>
+                    
+                    <button id="btn-setup" onclick="saveCapacities()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 rounded-lg transition">Save Capacities</button>
                 </div>
 
-                <div class="mt-auto">
-                    <button id="btn-allocate" onclick="runAllocation()" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-4 rounded-lg transition shadow-lg shadow-red-200 text-lg flex justify-center items-center">
-                        <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        Run Allocation Engine
-                    </button>
-                    <p class="text-xs text-center text-gray-500 mt-3" id="allocate-status">Ready to initialize.</p>
+                <!-- Algorithm Launcher -->
+                <div class="bg-[#0a0a0a] rounded-xl shadow-sm border border-gray-800 p-6 flex flex-col justify-between">
+                    <div>
+                        <h2 class="text-xl font-bold text-gray-200 mb-4 border-b pb-2">Seat Allocation Engine</h2>
+                        
+                        <div class="bg-blue-50 border border-blue-100 text-blue-800 p-4 rounded-lg text-xs mb-4">
+                            <strong>Three-Round Algorithm Rules:</strong>
+                            <ul class="list-disc pl-5 mt-1 space-y-1">
+                                <li>Filters out users who Exited or Frozen.</li>
+                                <li>Users sorted ascending by JEE Rank.</li>
+                                <li>Upgrades users on Float if better pref available.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="mt-auto">
+                        <button id="btn-allocate" onclick="runAllocation()" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-4 rounded-lg transition shadow-lg shadow-red-200 text-lg flex justify-center items-center">
+                            Run Allocation Engine
+                        </button>
+                        <p class="text-xs text-center text-gray-500 mt-3" id="allocate-status">Ready to initialize.</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -102,6 +123,8 @@
         const user = JSON.parse(localStorage.getItem('user'));
         if (!user || user.role !== 'admin') window.location.href = 'index.html';
 
+        let sysBranches = [];
+
         async function fetchConfig() {
             try {
                 const res = await fetch(`${API_BASE}/config`);
@@ -109,22 +132,43 @@
                 document.getElementById('toggle-reg').checked = config.is_registration_open;
                 document.getElementById('toggle-choice').checked = config.is_choice_filling_open;
                 document.getElementById('toggle-res').checked = config.is_result_published;
+                document.getElementById('input-round').value = config.current_round;
                 
-                if(config.is_allocation_run) {
-                    const btn = document.getElementById('btn-allocate');
-                    btn.disabled = true;
-                    btn.className = "w-full bg-gray-400 text-white font-bold py-4 rounded-lg cursor-not-allowed";
-                    btn.innerHTML = "Allocation Already Run";
-                    document.getElementById('allocate-status').textContent = "Database has been processed.";
+                const btnAllocate = document.getElementById('btn-allocate');
+                btnAllocate.innerHTML = `Run Round ${config.current_round} Allocation`;
+                
+                if (config.current_round > 1 || config.is_result_published) {
+                    document.getElementById('btn-setup').disabled = true;
+                    document.getElementById('btn-setup').className = "w-full bg-gray-600 text-gray-300 font-medium py-2 rounded-lg cursor-not-allowed";
+                    document.getElementById('btn-setup').textContent = "Locked (Round 1 Published)";
                 }
             } catch(e) { console.error("Error fetching config"); }
+        }
+
+        async function fetchBranches() {
+            try {
+                const res = await fetch(`${API_BASE}/branches`);
+                sysBranches = await res.json();
+                const container = document.getElementById('branches-setup');
+                container.innerHTML = '';
+                
+                sysBranches.forEach(b => {
+                    container.innerHTML += `
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-300">${b.branch_name}</span>
+                            <input type="number" id="branch-${b.branch_id}" value="${b.total_capacity}" class="w-16 px-2 py-1 bg-[#111] border border-gray-700 rounded text-white text-center">
+                        </div>
+                    `;
+                });
+            } catch (e) { console.error(e); }
         }
 
         async function saveConfig() {
             const payload = {
                 is_registration_open: document.getElementById('toggle-reg').checked,
                 is_choice_filling_open: document.getElementById('toggle-choice').checked,
-                is_result_published: document.getElementById('toggle-res').checked
+                is_result_published: document.getElementById('toggle-res').checked,
+                current_round: parseInt(document.getElementById('input-round').value)
             };
             try {
                 const res = await fetch(`${API_BASE}/admin/config`, {
@@ -132,13 +176,34 @@
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify(payload)
                 });
-                if(res.ok) showAlert("Configuration Applied Successfully");
+                if(res.ok) {
+                    showAlert("Configuration Applied Successfully");
+                    fetchConfig();
+                }
                 else showAlert("Failed to save config", true);
             } catch(e) { showAlert("Error applying config", true); }
         }
 
+        async function saveCapacities() {
+            const branches = sysBranches.map(b => ({
+                branch_id: b.branch_id,
+                total_capacity: parseInt(document.getElementById(`branch-${b.branch_id}`).value)
+            }));
+            
+            try {
+                const res = await fetch(`${API_BASE}/admin/setup_branches`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ branches })
+                });
+                const data = await res.json();
+                if(res.ok) showAlert(data.message);
+                else showAlert(data.error, true);
+            } catch(e) { showAlert("Error saving capacities", true); }
+        }
+
         async function runAllocation() {
-            if(!confirm("Warning: Running the allocation algorithm will assign seats. Are you sure?")) return;
+            if(!confirm("Warning: Running the allocation engine will assign and upgrade seats. Are you sure?")) return;
             try {
                 const res = await fetch(`${API_BASE}/admin/allocate`, { method: 'POST' });
                 const result = await res.json();
@@ -152,7 +217,7 @@
         function showAlert(msg, isError=false) {
             const el = document.getElementById('msg-alert');
             el.textContent = msg;
-            el.className = `mb-6 p-4 rounded-lg text-sm font-medium text-center ${isError ? 'bg-red-50 text-red-700 border border-red-200' : 'bg-green-50 text-green-700 border border-green-200'}`;
+            el.className = `mb-6 p-4 rounded-lg text-sm font-medium text-center ${isError ? 'bg-red-900/30 text-red-400 border border-red-800' : 'bg-green-900/30 text-green-400 border border-green-800'}`;
             el.classList.remove('hidden');
             setTimeout(() => el.classList.add('hidden'), 4000);
         }
@@ -163,6 +228,7 @@
         }
 
         fetchConfig();
+        fetchBranches();
     </script>
 </body>
 </html>

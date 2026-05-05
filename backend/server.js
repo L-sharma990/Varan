@@ -12,41 +12,47 @@ app.use(express.json());
 const pool = mysql.createPool({
     host: process.env.DB_HOST || 'localhost',
     user: process.env.DB_USER || 'root',
-    password: process.env.DB_PASSWORD || 'Lokesh@77',
-    database: process.env.DB_NAME || 'seat_allocation_db',
+    password: process.env.DB_PASSWORD || '',
+    database: process.env.DB_NAME || 'seat_allocation_v2_db',
+    port: parseInt(process.env.DB_PORT) || 3306,
     connectionLimit: 10
 });
 
-// Test connection
-pool.getConnection()
-    .then(conn => {
-        console.log('Connected to MySQL Database: seat_allocation_v2_db');
-        conn.release();
-    })
-    .catch(err => console.error('Error connecting to MySQL:', err));
+pool.getConnection().then(conn => {
+    console.log('Connected to MySQL Database: seat_allocation_v2_db');
+    conn.release();
+}).catch(err => console.error('Error connecting to MySQL:', err));
 
 // --- Auth Routes ---
 app.post('/api/register', async (req, res) => {
-    const { rollno, password, name, f_name, m_name, category, gender, dob, phone, email, jee_rank, jee_adv_rollno, jee_adv_rank } = req.body;
+    const { rollno, password, name, f_name, m_name, category, gender, dob, phone, email, jee_rank } = req.body;
+    
+    // Server-side validation
+    if (!/^[6-9]\d{9}$/.test(phone)) return res.status(400).json({ error: "Invalid phone number." });
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return res.status(400).json({ error: "Invalid email address." });
+    if (!/^2026\d{2}$/.test(rollno)) return res.status(400).json({ error: "Invalid roll number format." });
+    if (!/^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{6,}$/.test(password)) return res.status(400).json({ error: "Password does not meet complexity requirements." });
+
     const conn = await pool.getConnection();
     try {
         await conn.beginTransaction();
         const hashedPassword = await bcrypt.hash(password, 10);
         
+        // Simulating payment at registration by setting has_paid = TRUE
         const [userResult] = await conn.query(
-            "INSERT INTO users (rollno, password_hash, name, category, gender, dob, phone, email) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            "INSERT INTO users (rollno, password_hash, name, category, gender, dob, phone, email, has_paid) VALUES (?, ?, ?, ?, ?, ?, ?, ?, TRUE)",
             [rollno, hashedPassword, name, category, gender, dob, phone, email]
         );
         const userId = userResult.insertId;
         
         await conn.query("INSERT INTO user_parents (user_id, f_name, m_name) VALUES (?, ?, ?)", [userId, f_name, m_name]);
         await conn.query(
-            "INSERT INTO user_exam_details (user_id, jee_rank, jee_adv_rollno, jee_adv_rank) VALUES (?, ?, ?, ?)", 
-            [userId, parseInt(jee_rank), jee_adv_rollno || null, jee_adv_rank ? parseInt(jee_adv_rank) : null]
+            "INSERT INTO user_exam_details (user_id, jee_rank) VALUES (?, ?)", 
+            [userId, parseInt(jee_rank)]
         );
         
         await conn.commit();
-        res.status(201).json({ message: "Registration successful!", user_id: userId });
+        res.status(201).json({ message: "Registration & Payment successful!", user_id: userId });
     } catch (err) {
         await conn.rollback();
         console.error(err);
@@ -60,14 +66,13 @@ app.post('/api/register', async (req, res) => {
 app.post('/api/login', async (req, res) => {
     const { rollno, password } = req.body;
     
-    // Admin Override
     if (rollno === 'admin' && password === 'admin') {
         return res.json({ message: "Admin login successful", user: { id: 0, role: 'admin', name: 'Administrator' } });
     }
 
     try {
         const [users] = await pool.query(`
-            SELECT u.*, e.jee_rank, e.jee_adv_rollno, e.jee_adv_rank, p.f_name, p.m_name
+            SELECT u.*, e.jee_rank, p.f_name, p.m_name
             FROM users u
             LEFT JOIN user_exam_details e ON u.id = e.user_id
             LEFT JOIN user_parents p ON u.id = p.user_id
@@ -80,7 +85,6 @@ app.post('/api/login', async (req, res) => {
         const match = await bcrypt.compare(password, user.password_hash);
         if (!match) return res.status(401).json({ error: "Invalid credentials." });
         
-        // Don't send hash
         delete user.password_hash;
         user.role = 'user';
         res.json({ message: "Login successful", user });
@@ -90,12 +94,11 @@ app.post('/api/login', async (req, res) => {
     }
 });
 
-// --- User Dashboard Routes ---
 app.get('/api/user/:id', async (req, res) => {
     try {
         const [users] = await pool.query(`
-            SELECT u.id, u.rollno, u.name, u.category, u.gender, u.dob, u.phone, u.email,
-                   p.f_name, p.m_name, e.jee_rank, e.jee_adv_rollno, e.jee_adv_rank
+            SELECT u.id, u.rollno, u.name, u.category, u.gender, u.dob, u.phone, u.email, u.isExited, u.isFrozen, u.currentSeatID,
+                   p.f_name, p.m_name, e.jee_rank
             FROM users u
             LEFT JOIN user_parents p ON u.id = p.user_id
             LEFT JOIN user_exam_details e ON u.id = e.user_id
@@ -110,7 +113,7 @@ app.get('/api/user/:id', async (req, res) => {
 });
 
 app.put('/api/user/update', async (req, res) => {
-    const { id, name, f_name, m_name, category, gender, dob, phone, email, jee_rank, jee_adv_rollno, jee_adv_rank } = req.body;
+    const { id, name, f_name, m_name, category, gender, dob, phone, email, jee_rank } = req.body;
     const conn = await pool.getConnection();
     try {
         await conn.beginTransaction();
@@ -121,8 +124,8 @@ app.put('/api/user/update', async (req, res) => {
         );
         await conn.query("UPDATE user_parents SET f_name=?, m_name=? WHERE user_id=?", [f_name, m_name, id]);
         await conn.query(
-            "UPDATE user_exam_details SET jee_rank=?, jee_adv_rollno=?, jee_adv_rank=? WHERE user_id=?", 
-            [parseInt(jee_rank), jee_adv_rollno || null, jee_adv_rank ? parseInt(jee_adv_rank) : null, id]
+            "UPDATE user_exam_details SET jee_rank=? WHERE user_id=?", 
+            [parseInt(jee_rank), id]
         );
         
         await conn.commit();
@@ -136,14 +139,10 @@ app.put('/api/user/update', async (req, res) => {
     }
 });
 
-// --- Institute / Choices Routes ---
-app.get('/api/courses', async (req, res) => {
+// --- Branches & Choices Routes ---
+app.get('/api/branches', async (req, res) => {
     try {
-        const [rows] = await pool.query(`
-            SELECT * 
-            FROM courses
-            ORDER BY course_name
-        `);
+        const [rows] = await pool.query("SELECT * FROM branches ORDER BY branch_id");
         res.json(rows);
     } catch (err) {
         res.status(500).json({ error: "Database error." });
@@ -153,9 +152,9 @@ app.get('/api/courses', async (req, res) => {
 app.get('/api/choices/:user_id', async (req, res) => {
     try {
         const [rows] = await pool.query(`
-            SELECT uc.*, c.course_name 
+            SELECT uc.*, b.branch_name 
             FROM user_choices uc
-            JOIN courses c ON uc.course_id = c.id
+            JOIN branches b ON uc.branch_id = b.branch_id
             WHERE uc.user_id = ?
             ORDER BY uc.preference_no ASC
         `, [req.params.user_id]);
@@ -169,10 +168,9 @@ app.post('/api/choices/save', async (req, res) => {
     const { user_id, choices } = req.body;
     try {
         await pool.query("DELETE FROM user_choices WHERE user_id = ?", [user_id]);
-        
         if (choices && choices.length > 0) {
-            const values = choices.map((c, index) => [user_id, c.course_id, index + 1, false]);
-            await pool.query("INSERT INTO user_choices (user_id, course_id, preference_no, is_locked) VALUES ?", [values]);
+            const values = choices.map((c, index) => [user_id, c.branch_id, index + 1]);
+            await pool.query("INSERT INTO user_choices (user_id, branch_id, preference_no) VALUES ?", [values]);
         }
         res.json({ message: "Choices saved." });
     } catch (err) {
@@ -181,15 +179,6 @@ app.post('/api/choices/save', async (req, res) => {
     }
 });
 
-app.post('/api/choices/lock', async (req, res) => {
-    const { user_id } = req.body;
-    try {
-        await pool.query("UPDATE user_choices SET is_locked = TRUE WHERE user_id = ?", [user_id]);
-        res.json({ message: "Choices locked successfully." });
-    } catch (err) {
-        res.status(500).json({ error: "Error locking choices." });
-    }
-});
 
 // --- System & Admin Routes ---
 app.get('/api/config', async (req, res) => {
@@ -202,15 +191,40 @@ app.get('/api/config', async (req, res) => {
 });
 
 app.post('/api/admin/config', async (req, res) => {
-    const { is_registration_open, is_choice_filling_open, is_result_published } = req.body;
+    const { is_registration_open, is_choice_filling_open, is_result_published, current_round } = req.body;
     try {
         await pool.query(
-            "UPDATE system_config SET is_registration_open=?, is_choice_filling_open=?, is_result_published=? WHERE id=1",
-            [is_registration_open, is_choice_filling_open, is_result_published]
+            "UPDATE system_config SET is_registration_open=?, is_choice_filling_open=?, is_result_published=?, current_round=? WHERE id=1",
+            [is_registration_open, is_choice_filling_open, is_result_published, current_round]
         );
         res.json({ message: "System config updated." });
     } catch (err) {
         res.status(500).json({ error: "Database error updating config." });
+    }
+});
+
+app.post('/api/admin/setup_branches', async (req, res) => {
+    const { branches } = req.body; // Array of { branch_id, total_capacity }
+    const conn = await pool.getConnection();
+    try {
+        await conn.beginTransaction();
+        const [config] = await conn.query("SELECT current_round, is_result_published FROM system_config LIMIT 1");
+        if (config[0].current_round > 1 || config[0].is_result_published) {
+            await conn.rollback();
+            return res.status(400).json({ error: "Cannot modify capacities after Round 1 results are published." });
+        }
+
+        for (const b of branches) {
+            await conn.query("UPDATE branches SET total_capacity = ?, remaining_capacity = ? WHERE branch_id = ?", [b.total_capacity, b.total_capacity, b.branch_id]);
+        }
+        await conn.commit();
+        res.json({ message: "Branch capacities updated successfully." });
+    } catch (err) {
+        await conn.rollback();
+        console.error(err);
+        res.status(500).json({ error: "Database error." });
+    } finally {
+        conn.release();
     }
 });
 
@@ -219,48 +233,14 @@ app.post('/api/admin/allocate', async (req, res) => {
     try {
         await conn.beginTransaction();
 
-        // Check if allocation already run
-        const [config] = await conn.query("SELECT * FROM system_config LIMIT 1");
-        if (config[0].is_allocation_run) {
-            await conn.rollback();
-            return res.status(400).json({ error: "Allocation already run." });
-        }
+        const [config] = await conn.query("SELECT current_round FROM system_config LIMIT 1");
+        const roundNo = config[0].current_round;
 
-        // Reset available seats just in case
-        await conn.query("UPDATE courses SET available_seats = total_seats");
-        
-        // Clear old results
-        await conn.query("DELETE FROM results");
-
-        // 1. Get all users sorted by jee_rank ASC
-        const [users] = await conn.query(`
-            SELECT u.id 
-            FROM users u
-            JOIN user_exam_details e ON u.id = e.user_id
-            ORDER BY e.jee_rank ASC
-        `);
-
-        // 2. For each user, get choices sorted by preference
-        for (const user of users) {
-            const [choices] = await conn.query("SELECT * FROM user_choices WHERE user_id = ? ORDER BY preference_no ASC", [user.id]);
-            
-            for (const choice of choices) {
-                const [coursesInfo] = await conn.query("SELECT available_seats FROM courses WHERE id = ? FOR UPDATE", [choice.course_id]);
-                
-                if (coursesInfo[0] && coursesInfo[0].available_seats > 0) {
-                    // Allot this seat
-                    await conn.query("INSERT INTO results (user_id, course_id) VALUES (?, ?)", [user.id, choice.course_id]);
-                    await conn.query("UPDATE courses SET available_seats = available_seats - 1 WHERE id = ?", [choice.course_id]);
-                    break; // Move to next user
-                }
-            }
-        }
-
-        // 3. Mark allocation as run
-        await conn.query("UPDATE system_config SET is_allocation_run = TRUE WHERE id=1");
+        // Execute the allocation logic natively inside the database via Stored Procedure
+        await conn.query("CALL process_allocation_round()");
 
         await conn.commit();
-        res.json({ message: "Seat Allocation processing complete." });
+        res.json({ message: `Round ${roundNo} Allocation processing complete.` });
     } catch (err) {
         await conn.rollback();
         console.error(err);
@@ -270,37 +250,114 @@ app.post('/api/admin/allocate', async (req, res) => {
     }
 });
 
-app.get('/api/results/:user_id', async (req, res) => {
+app.post('/api/student/action', async (req, res) => {
+    const { user_id, action } = req.body; // 'Exit', 'Freeze', 'Float'
+    const conn = await pool.getConnection();
     try {
-        const [configRows] = await pool.query("SELECT is_result_published FROM system_config LIMIT 1");
-        if (!configRows[0].is_result_published) {
-             return res.json({ published: false });
+        await conn.beginTransaction();
+        const [config] = await conn.query("SELECT current_round FROM system_config LIMIT 1");
+        const roundNo = config[0].current_round;
+
+        const [users] = await conn.query("SELECT currentSeatID, isExited, isFrozen FROM users WHERE id = ?", [user_id]);
+        if (users.length === 0) return res.status(404).json({ error: "User not found." });
+        
+        const user = users[0];
+        if (user.isExited || user.isFrozen) {
+            await conn.rollback();
+            return res.status(400).json({ error: "You have already completed your process." });
         }
 
-        const [results] = await pool.query(`
-            SELECT r.*, c.course_name 
-            FROM results r
-            JOIN courses c ON r.course_id = c.id
-            WHERE r.user_id = ?
-        `, [req.params.user_id]);
-
-        if (results.length === 0) {
-            return res.json({ published: true, alloted: false });
+        if (action === 'Exit') {
+            await conn.query("UPDATE users SET isExited = TRUE WHERE id = ?", [user_id]);
+            if (user.currentSeatID) {
+                await conn.query("UPDATE branches SET remaining_capacity = remaining_capacity + 1 WHERE branch_id = ?", [user.currentSeatID]);
+                // Release seat completely
+                await conn.query("UPDATE users SET currentSeatID = NULL WHERE id = ?", [user_id]);
+            }
+            await conn.query("INSERT INTO audit_logs (user_id, round_no, action, branch_id) VALUES (?, ?, 'Exited', NULL)", [user_id, roundNo]);
+            await conn.commit();
+            return res.json({ message: "Successfully exited. Payment Refunded.", refunded: true });
+        } 
+        else if (action === 'Freeze') {
+            if (!user.currentSeatID) {
+                await conn.rollback();
+                return res.status(400).json({ error: "No seat to freeze." });
+            }
+            await conn.query("UPDATE users SET isFrozen = TRUE WHERE id = ?", [user_id]);
+            await conn.query("INSERT INTO audit_logs (user_id, round_no, action, branch_id) VALUES (?, ?, 'Frozen', ?)", [user_id, roundNo, user.currentSeatID]);
+            await conn.commit();
+            return res.json({ message: "Seat frozen successfully." });
         }
-
-        res.json({ published: true, alloted: true, data: results[0] });
+        else if (action === 'Float') {
+            if (!user.currentSeatID) {
+                await conn.rollback();
+                return res.status(400).json({ error: "No seat to float." });
+            }
+            await conn.query("INSERT INTO audit_logs (user_id, round_no, action, branch_id) VALUES (?, ?, 'Floated', ?)", [user_id, roundNo, user.currentSeatID]);
+            await conn.commit();
+            return res.json({ message: "Opted for float successfully." });
+        }
+        
+        await conn.rollback();
+        res.status(400).json({ error: "Invalid action." });
     } catch (err) {
+        await conn.rollback();
+        console.error(err);
         res.status(500).json({ error: "Database error." });
+    } finally {
+        conn.release();
     }
 });
 
-app.post('/api/payment', async (req, res) => {
-    const { user_id } = req.body;
+app.get('/api/results/:user_id', async (req, res) => {
     try {
-        await pool.query("UPDATE results SET status = 'Paid' WHERE user_id = ?", [user_id]);
-        res.json({ message: "Payment recorded successfully." });
+        const [users] = await pool.query(`
+            SELECT u.currentSeatID, u.isExited, u.isFrozen, u.has_paid, b.branch_name 
+            FROM users u
+            LEFT JOIN branches b ON u.currentSeatID = b.branch_id
+            WHERE u.id = ?
+        `, [req.params.user_id]);
+
+        if (users.length === 0) return res.status(404).json({ error: "User not found" });
+        const user = users[0];
+
+        const [config] = await pool.query("SELECT is_result_published, current_round FROM system_config LIMIT 1");
+        if (!config[0].is_result_published && !user.isExited && !user.isFrozen) {
+             return res.json({ published: false });
+        }
+
+        const [logs] = await pool.query(`
+            SELECT a.*, b.branch_name 
+            FROM audit_logs a
+            LEFT JOIN branches b ON a.branch_id = b.branch_id
+            WHERE a.user_id = ?
+            ORDER BY a.timestamp DESC
+        `, [req.params.user_id]);
+
+        // removed duplicate declaration
+        if (!user.currentSeatID) {
+            return res.json({ 
+                published: true, 
+                alloted: false, 
+                isExited: user.isExited,
+                history: logs 
+            });
+        }
+
+        res.json({ 
+            published: true, 
+            alloted: true, 
+            data: {
+                branch_name: user.branch_name,
+                isFrozen: user.isFrozen,
+                isExited: user.isExited,
+                has_paid: user.has_paid
+            },
+            history: logs
+        });
     } catch (err) {
-        res.status(500).json({ error: "Database error recording payment." });
+        console.error(err);
+        res.status(500).json({ error: "Database error." });
     }
 });
 

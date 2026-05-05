@@ -5,432 +5,247 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VARAN | Seat Allocation System</title>
     <link rel="stylesheet" href="tailwind.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #000; color: #e5e7eb; }
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: #111; border-radius: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #555; }
-        
-        .bg-concentric {
-            background-color: #050505;
-            background-image: 
-                linear-gradient(45deg, #0a0a0a 25%, transparent 25%, transparent 75%, #0a0a0a 75%, #0a0a0a),
-                linear-gradient(45deg, #0a0a0a 25%, transparent 25%, transparent 75%, #0a0a0a 75%, #0a0a0a);
-            background-size: 60px 60px;
-            background-position: 0 0, 30px 30px;
-        }
-        
-        .glass-panel {
-            background: rgba(10, 10, 10, 0.85);
-            backdrop-filter: blur(16px);
-            border: 1px solid rgba(20, 184, 166, 0.15); /* teal-500 */
-        }
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:'Inter',sans-serif;background-color:#09090b;background-image:linear-gradient(rgba(255,255,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.03) 1px,transparent 1px);background-size:32px 32px;color:#fafafa;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+        .font-space{font-family:'Space Grotesk',sans-serif}
+        ::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:#09090b}::-webkit-scrollbar-thumb{background:#27272a;border-radius:3px}
+        .glow{box-shadow:0 0 80px 20px rgba(20,184,166,.08)}
+        .card{background:#111113;border:1px solid #1c1c1f;border-radius:16px;transition:all .4s ease}
+        .card:hover{border-color:rgba(20,184,166,.3);transform:translateY(-4px);box-shadow:0 20px 60px -15px rgba(20,184,166,.15)}
+        .inp{width:100%;padding:10px 14px;background:#18181b;border:1px solid #27272a;border-radius:10px;color:#fff;font-size:13px;transition:all .3s}
+        .inp:focus{outline:none;border-color:#14b8a6;box-shadow:0 0 0 3px rgba(20,184,166,.1)}
+        .btn-primary{background:linear-gradient(135deg,#14b8a6,#0d9488);color:#000;font-weight:700;padding:12px 28px;border-radius:12px;border:none;cursor:pointer;transition:all .3s;font-size:14px}
+        .btn-primary:hover{box-shadow:0 0 30px rgba(20,184,166,.4);transform:translateY(-1px)}
+        .fade-in{opacity:0;transform:translateY(24px);transition:all .7s cubic-bezier(.16,1,.3,1)}
+        .fade-in.show{opacity:1;transform:translateY(0)}
+        .faq-ans{display:grid;grid-template-rows:0fr;opacity:0;transition:all .3s ease}
+        .faq-open .faq-ans{grid-template-rows:1fr;opacity:1}
+        .faq-inner{overflow:hidden}
+        .faq-open .faq-chevron{transform:rotate(180deg)}
+        .faq-chevron{transition:transform .3s ease}
+        .custom-scrollbar::-webkit-scrollbar{width:5px}.custom-scrollbar::-webkit-scrollbar-thumb{background:#27272a;border-radius:3px}
+        @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+        .anim-float{animation:float 4s ease-in-out infinite}
+        @keyframes pulse-glow{0%,100%{box-shadow:0 0 20px rgba(20,184,166,.2)}50%{box-shadow:0 0 40px rgba(20,184,166,.4)}}
+        .pulse-glow{animation:pulse-glow 3s ease-in-out infinite}
     </style>
 </head>
-<body class="flex flex-col min-h-screen">
+<body>
+<!-- NAV -->
+<nav class="fixed w-full z-50 border-b border-white/5" style="background:rgba(9,9,11,.85);backdrop-filter:blur(20px)">
+    <div class="max-w-7xl mx-auto px-6 flex items-center justify-between h-[72px] py-4">
+        <a href="#" class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-teal-400 to-emerald-600 flex items-center justify-center pulse-glow"><span class="text-black font-black text-lg">V</span></div>
+            <div class="leading-tight"><div class="text-white font-bold text-lg tracking-tight font-space">VARAN</div><div class="text-[9px] text-teal-500 font-semibold tracking-[.2em]">वरण · SELECTION</div></div>
+        </a>
+        <div class="hidden md:flex items-center gap-8">
+            <a href="#about" class="text-[13px] text-zinc-400 hover:text-white transition font-medium">About</a>
+            <a href="#platform" class="text-[13px] text-zinc-400 hover:text-white transition font-medium">Platform</a>
+            <a href="#branches" class="text-[13px] text-zinc-400 hover:text-white transition font-medium">Branches</a>
+            <a href="#faq" class="text-[13px] text-zinc-400 hover:text-white transition font-medium">FAQ</a>
+            <a href="login.html" class="btn-primary text-[13px] px-5 py-2.5">Student Login</a>
+        </div>
+    </div>
+</nav>
 
-    <!-- Header / Navbar -->
-    <nav class="glass-panel sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-20 items-center">
-                <div class="flex items-center space-x-2">
-                    <div class="w-10 h-10 bg-teal-500 rounded-xl flex items-center justify-center text-black font-bold text-xl shadow-[0_0_15px_rgba(20,184,166,0.5)]">
-                        V
-                    </div>
-                    <span class="font-extrabold text-2xl tracking-tight text-white">VARAN</span>
-                </div>
-                <div class="hidden md:flex space-x-8 items-center">
-                    <a href="#" class="text-gray-400 hover:text-teal-400 font-medium transition">Home</a>
-                    <a href="#about" class="text-gray-400 hover:text-teal-400 font-medium transition">About</a>
-                    <a href="#auth-section" class="text-gray-400 hover:text-teal-400 font-medium transition">Register</a>
-                    <a href="#auth-section" class="bg-teal-500 hover:bg-teal-400 text-black px-6 py-2.5 rounded-full font-bold transition shadow-[0_0_15px_rgba(20,184,166,0.3)]">Log In</a>
+<!-- HERO -->
+<section class="relative pt-36 pb-28 max-w-7xl mx-auto text-center overflow-hidden">
+    <div class="absolute top-20 left-1/2 -translate-x-1/2 w-[700px] h-[700px] rounded-full" style="background:radial-gradient(circle,rgba(20,184,166,.07) 0%,transparent 70%);filter:blur(40px)"></div>
+    <div class="relative z-10">
+        <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-teal-500/20 bg-teal-500/5 text-teal-400 text-xs font-semibold mb-8 fade-in">
+            <span class="w-1.5 h-1.5 rounded-full bg-teal-400 animate-pulse"></span> VARAN Engine · <span id="hero-round-text">Live</span>
+        </div>
+        <h1 class="text-5xl md:text-7xl font-black tracking-tight text-white mb-5 fade-in font-space" style="transition-delay:.1s">The Future of<br><span style="background:linear-gradient(90deg,#2dd4bf,#10b981);-webkit-background-clip:text;-webkit-text-fill-color:transparent">Seat Allocation</span></h1>
+        <p class="text-zinc-400 text-lg md:text-xl max-w-xl mx-auto leading-relaxed mb-10 fade-in" style="transition-delay:.2s">Transparent, merit-based, round-driven admission. Register, fill choices, track allotment — all in one place.</p>
+        <div class="flex flex-col sm:flex-row gap-4 justify-center items-center fade-in" style="transition-delay:.3s">
+            <a href="register.html" class="btn-primary text-base px-8 py-4">Start Admission →</a>
+            <a href="#platform" class="px-8 py-4 rounded-xl border border-zinc-800 text-white font-semibold hover:bg-zinc-900 transition text-base">How It Works</a>
+        </div>
+    </div>
+</section>
+
+<!-- STATS BAR -->
+<section class="border-y border-white/5 py-10 px-6 fade-in">
+    <div class="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+        <div><div class="text-3xl font-black text-white font-space">3</div><div class="text-zinc-500 text-xs mt-1 font-medium">Allocation Rounds</div></div>
+        <div><div class="text-3xl font-black text-white font-space">4+</div><div class="text-zinc-500 text-xs mt-1 font-medium">Engineering Branches</div></div>
+        <div><div class="text-3xl font-black text-white font-space">100%</div><div class="text-zinc-500 text-xs mt-1 font-medium">Merit Transparent</div></div>
+        <div><div class="text-3xl font-black text-white font-space">₹1</div><div class="text-zinc-500 text-xs mt-1 font-medium">Refundable Deposit</div></div>
+    </div>
+</section>
+
+<!-- ABOUT -->
+<section id="about" class="py-24 px-6 max-w-7xl mx-auto">
+    <div class="grid md:grid-cols-2 gap-16 items-center">
+        <div class="fade-in">
+            <p class="text-teal-500 text-xs font-bold tracking-[.2em] mb-4">WHAT IS VARAN?</p>
+            <h2 class="text-3xl md:text-4xl font-bold text-white mb-6 font-space leading-tight">More than seat availability — a full <span style="background:linear-gradient(90deg,#2dd4bf,#10b981);-webkit-background-clip:text;-webkit-text-fill-color:transparent">allocation engine</span>.</h2>
+            <p class="text-zinc-400 leading-relaxed mb-6">VARAN handles multiple round capacity logic on the backend while providing a stress-free, transparent experience for candidates to submit preferences and track allotments in real-time.</p>
+            <ul class="space-y-3">
+                <li class="flex items-center gap-3 text-zinc-300 text-sm"><svg class="w-5 h-5 text-teal-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>JEE Rank-based merit evaluation</li>
+                <li class="flex items-center gap-3 text-zinc-300 text-sm"><svg class="w-5 h-5 text-teal-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>Freeze / Float / Exit controls per round</li>
+                <li class="flex items-center gap-3 text-zinc-300 text-sm"><svg class="w-5 h-5 text-teal-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>Full audit trail of every allocation</li>
+            </ul>
+        </div>
+        <div class="fade-in" style="transition-delay:.2s">
+            <div class="card p-6 anim-float">
+                <div class="flex items-center justify-between mb-4"><span class="text-white font-bold text-sm">Total Seats</span></div>
+                <div class="space-y-3 custom-scrollbar overflow-y-auto max-h-56 pr-2" id="live-branches-container">
+                    <div class="text-zinc-500 text-xs text-center py-4">Loading live data...</div>
                 </div>
             </div>
         </div>
-    </nav>
+    </div>
+</section>
 
-    <!-- Hero Section -->
-    <section class="bg-black py-24 border-b border-white/5 relative overflow-hidden">
-        <!-- Glow effects -->
-        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-teal-500/10 rounded-full blur-[100px] pointer-events-none"></div>
+<!-- PLATFORM -->
+<section id="platform" class="py-24 px-6 max-w-7xl mx-auto border-t border-white/5">
+    <div class="text-center mb-14 fade-in"><p class="text-teal-500 text-xs font-bold tracking-[.2em] mb-2">HOW IT WORKS</p><h2 class="text-3xl md:text-4xl font-bold text-white font-space">Three Steps to Your Seat</h2></div>
+    <div class="grid md:grid-cols-3 gap-6">
+        <div class="card p-8 fade-in">
+            <div class="w-10 h-10 rounded-xl bg-teal-500/10 flex items-center justify-center mb-5"><svg class="w-5 h-5 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg></div>
+            <div class="text-teal-500 text-[11px] font-bold tracking-widest mb-2">STEP 01</div>
+            <h4 class="text-lg font-bold text-white mb-2">Register & Pay</h4>
+            <p class="text-zinc-400 text-sm leading-relaxed">Create your profile with JEE details. A ₹1 mock payment secures your slot in the allocation process.</p>
+        </div>
+        <div class="card p-8 fade-in" style="transition-delay:.1s">
+            <div class="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center mb-5"><svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg></div>
+            <div class="text-emerald-500 text-[11px] font-bold tracking-widest mb-2">STEP 02</div>
+            <h4 class="text-lg font-bold text-white mb-2">Fill Choices</h4>
+            <p class="text-zinc-400 text-sm leading-relaxed">Select and rank your preferred branches. Update your list freely while the choice window is open.</p>
+        </div>
+        <div class="card p-8 fade-in" style="transition-delay:.2s">
+            <div class="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center mb-5"><svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg></div>
+            <div class="text-blue-500 text-[11px] font-bold tracking-widest mb-2">STEP 03</div>
+            <h4 class="text-lg font-bold text-white mb-2">Get Allotted</h4>
+            <p class="text-zinc-400 text-sm leading-relaxed">The engine runs. Check your seat, then Freeze it, Float for upgrades, or Exit with a full refund.</p>
+        </div>
+    </div>
+</section>
+
+<!-- BRANCHES -->
+<section id="branches" class="py-24 px-6 max-w-7xl mx-auto border-t border-white/5">
+    <div class="text-center mb-14 fade-in"><p class="text-teal-500 text-xs font-bold tracking-[.2em] mb-2">PROGRAMS OFFERED</p><h2 class="text-3xl md:text-4xl font-bold text-white font-space">World-Class Engineering Streams</h2></div>
+    <div class="grid md:grid-cols-2 gap-6 fade-in">
+        <div class="card p-8"><h4 class="text-xl font-bold text-white mb-2">Computer Science & Engineering</h4><p class="text-zinc-400 text-sm leading-relaxed">Premier program covering AI, systems, and software. Highest demand based on JEE ranks. Excellent placement record.</p></div>
+        <div class="card p-8"><h4 class="text-xl font-bold text-white mb-2">Electronics & Communication</h4><p class="text-zinc-400 text-sm leading-relaxed">Blend of hardware and software engineering. Strong research labs and industry partnerships.</p></div>
+        <div class="card p-8"><h4 class="text-xl font-bold text-white mb-2">Mechanical Engineering</h4><p class="text-zinc-400 text-sm leading-relaxed">Core engineering discipline with modern curriculum spanning robotics, thermal systems, and manufacturing.</p></div>
+        <div class="card p-8"><h4 class="text-xl font-bold text-white mb-2">Civil Engineering</h4><p class="text-zinc-400 text-sm leading-relaxed">Infrastructure and structural design with hands-on lab experience and real-world project exposure.</p></div>
+    </div>
+</section>
+
+<!-- FAQ -->
+<section id="faq" class="py-24 px-6 max-w-7xl mx-auto ">
+    <div class="text-center mb-14 fade-in"><p class="text-teal-500 text-xs font-bold tracking-[.2em] mb-2">FAQ</p><h2 class="text-3xl font-bold text-white font-space">Common Questions</h2></div>
+    <div class="space-y-3 fade-in">
+        <div class="card faq-item cursor-pointer" onclick="this.classList.toggle('faq-open')"><div class="px-6 py-4 flex justify-between items-center gap-4"><span class="text-white font-medium text-sm pr-4">How does the ₹1 mock payment work?</span><svg class="w-5 h-5 shrink-0 text-zinc-500 faq-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg></div><div class="faq-ans"><div class="faq-inner"><div class="px-6 pb-4 text-zinc-400 text-sm">A simulated ₹1 payment is processed during registration. If you Exit without freezing a seat, it's automatically refunded in our logs.</div></div></div></div>
+        <div class="card faq-item cursor-pointer" onclick="this.classList.toggle('faq-open')"><div class="px-6 py-4 flex justify-between items-center gap-4"><span class="text-white font-medium text-sm pr-4">What do Freeze, Float, and Exit mean?</span><svg class="w-5 h-5 shrink-0 text-zinc-500 faq-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg></div><div class="faq-ans"><div class="faq-inner"><div class="px-6 pb-4 text-zinc-400 text-sm"><b class="text-white">Freeze:</b> Lock seat, exit future rounds. <b class="text-white">Float:</b> Keep seat, eligible for upgrades. <b class="text-white">Exit:</b> Surrender seat, get refund.</div></div></div></div>
+        <div class="card faq-item cursor-pointer" onclick="this.classList.toggle('faq-open')"><div class="px-6 py-4 flex justify-between items-center gap-4"><span class="text-white font-medium text-sm pr-4">Can I change my choices between rounds?</span><svg class="w-5 h-5 shrink-0 text-zinc-500 faq-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg></div><div class="faq-ans"><div class="faq-inner"><div class="px-6 pb-4 text-zinc-400 text-sm">Yes! As long as the admin has opened choice filling, you can add, remove, or reorder preferences from your dashboard.</div></div></div></div>
+        <div class="card faq-item cursor-pointer" onclick="this.classList.toggle('faq-open')"><div class="px-6 py-4 flex justify-between items-center gap-4"><span class="text-white font-medium text-sm pr-4">How is merit evaluated?</span><svg class="w-5 h-5 shrink-0 text-zinc-500 faq-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg></div><div class="faq-ans"><div class="faq-inner"><div class="px-6 pb-4 text-zinc-400 text-sm">Seats are allocated strictly by JEE Main Rank (ascending). Better ranks are processed first and awarded their highest available preference.</div></div></div></div>
+    </div>
+</section>
+
+<footer class="py-16 px-6" style="background:#09090b">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start gap-12 md:gap-8 mb-12 w-full pt-4">
+        <!-- Brand Column -->
+        <div>
+            <div class="flex items-center gap-3 mb-6">
+                <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-teal-400 to-emerald-600 flex items-center justify-center"><span class="text-black font-black text-lg">V</span></div>
+                <div class="leading-tight"><div class="text-white font-bold text-lg tracking-tight font-space">VARAN</div><div class="text-[9px] text-teal-500 font-semibold tracking-[.2em]">वरण · SELECTION</div></div>
+            </div>
+            <p class="text-zinc-400 text-sm leading-relaxed mb-6">A next-generation seat allocation engine ensuring transparent and merit-based admission for universities.</p>
+            <div class="flex gap-5">
+                <a href="#" class="text-zinc-400 hover:text-teal-400 transition p-6"><svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"/></svg></a>
+                <a href="#" class="text-zinc-400 hover:text-teal-400 transition p-6"><svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg></a>
+                <a href="#" class="text-zinc-400 hover:text-teal-400 transition p-6"><svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg></a>
+            </div>
+        </div>
+
+        <!-- Quick Links -->
+        <div>
+            <h4 class="text-white font-bold mb-6 font-space">Quick Links</h4>
+            <ul class="space-y-3">
+                <li><a href="#" class="text-zinc-400 hover:text-teal-400 text-sm transition">Home</a></li>
+                <li><a href="#about" class="text-zinc-400 hover:text-teal-400 text-sm transition">About VARAN</a></li>
+                <li><a href="#branches" class="text-zinc-400 hover:text-teal-400 text-sm transition">Programs</a></li>
+                <li><a href="login.html" class="text-zinc-400 hover:text-teal-400 text-sm transition">Student Login</a></li>
+                <li><a href="register.html" class="text-zinc-400 hover:text-teal-400 text-sm transition">Register Now</a></li>
+            </ul>
+        </div>
+
+        <!-- Policies -->
+        <div>
+            <h4 class="text-white font-bold mb-6 font-space">Legal & Policies</h4>
+            <ul class="space-y-3">
+                <li><a href="#" class="text-zinc-400 hover:text-teal-400 text-sm transition">Terms and Conditions</a></li>
+                <li><a href="#" class="text-zinc-400 hover:text-teal-400 text-sm transition">Privacy Policy</a></li>
+                <li><a href="#" class="text-zinc-400 hover:text-teal-400 text-sm transition">Refund Policy</a></li>
+                <li><a href="#" class="text-zinc-400 hover:text-teal-400 text-sm transition">Cookie Guidelines</a></li>
+            </ul>
+        </div>
+
+        <!-- Contact -->
+        <div>
+            <h4 class="text-white font-bold mb-6 font-space">Contact Us</h4>
+            <ul class="space-y-4">
+                <li class="flex items-start gap-3">
+                    <svg class="w-5 h-5 text-teal-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+                    <div><div class="text-xs text-zinc-500">Phone</div><a href="tel:+919876543210" class="text-zinc-300 hover:text-teal-400 text-sm transition">+91 98765 43210</a></div>
+                </li>
+                <li class="flex items-start gap-3">
+                    <svg class="w-5 h-5 text-teal-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                    <div><div class="text-xs text-zinc-500">Email</div><a href="mailto:support@varan.tech" class="text-zinc-300 hover:text-teal-400 text-sm transition">support@varan.tech</a></div>
+                </li>
+                <li class="flex items-start gap-3">
+                    <svg class="w-5 h-5 text-teal-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    <div><div class="text-xs text-zinc-500">Address</div><span class="text-zinc-300 text-sm">Technology Park, Udaipur<br>Rajasthan, India</span></div>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <div class="max-w-7xl mx-auto pt-4 border-t border-zinc-800/50 pb-4 flex flex-col md:flex-row justify-center items-center gap-4">
+        <span class="text-zinc-600 text-xs">© 2026 VARAN Technologies. All rights reserved.</span>
+    </div>
+</footer>
+
+<script>
+document.addEventListener('DOMContentLoaded',()=>{
+    const obs=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('show')})},{threshold:.1});
+    document.querySelectorAll('.fade-in').forEach(el=>obs.observe(el));
+    fetchDynamicData();
+});
+
+async function fetchDynamicData() {
+    try {
+        const [configRes, branchesRes] = await Promise.all([
+            fetch('http://localhost:8080/api/config'),
+            fetch('http://localhost:8080/api/branches')
+        ]);
         
-        <div class="max-w-4xl mx-auto px-4 sm:px-6 text-center relative z-10">
-            <h1 class="text-5xl md:text-6xl font-extrabold text-white tracking-tight mb-6">
-                Centralized Seat <br/> <span class="text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-emerald-300">Allocation System</span>
-            </h1>
-            <p class="text-lg md:text-xl text-gray-400 leading-relaxed mb-10 max-w-2xl mx-auto">
-                Welcome to VARAN, your gateway to Nexus University. Experience a seamless, transparent, and merit-based admission process. Register, submit your choices, and track your allotment.
-            </p>
-            <div class="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
-                <a href="#auth-section" class="bg-teal-500 hover:bg-teal-400 text-black px-8 py-3.5 rounded-full font-bold transition shadow-[0_0_20px_rgba(20,184,166,0.4)] text-lg">
-                    Get Started
-                </a>
-                <a href="#about" class="bg-transparent border-2 border-gray-700 hover:border-gray-500 text-gray-300 px-8 py-3.5 rounded-full font-semibold transition text-lg">
-                    Learn More
-                </a>
-            </div>
-        </div>
-    </section>
-
-    <!-- Main Content (Login/Register Area) -->
-    <main id="auth-section" class="flex-grow flex items-center justify-center py-20 px-4 sm:px-6 lg:px-8 bg-[#050505]">
-        <div class="w-full max-w-5xl glass-panel rounded-3xl shadow-2xl flex flex-col md:flex-row overflow-hidden relative">
-            
-            <!-- Left Side: Forms -->
-            <div class="w-full md:w-1/2 p-10 md:p-14 bg-[#0a0a0a]">
-                
-                <div id="error-message" class="hidden mb-6 p-4 bg-red-900/30 text-red-400 rounded-xl text-sm border border-red-800 font-medium"></div>
-                <div id="success-message" class="hidden mb-6 p-4 bg-teal-900/30 text-teal-400 rounded-xl text-sm border border-teal-800 font-medium"></div>
-
-                <!-- Login Form -->
-                <div id="login-section" class="transition-all duration-300 transform opacity-100 translate-x-0">
-                    <div class="text-center mb-10">
-                        <h2 class="text-3xl font-bold text-white tracking-tight">Welcome Back</h2>
-                        <p class="text-sm text-gray-400 mt-2">Enter your roll number & password to login</p>
-                    </div>
-
-                    <form id="login-form" class="space-y-5" onsubmit="handleLogin(event)">
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-300 mb-1.5">Roll Number / User ID</label>
-                            <input type="text" id="login-rollno" required class="w-full px-4 py-3 rounded-xl border border-gray-800 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition bg-black text-white focus:bg-[#111]" placeholder="Enter your roll no (e.g. 1001)">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-300 mb-1.5">Password</label>
-                            <input type="password" id="login-password" required class="w-full px-4 py-3 rounded-xl border border-gray-800 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition bg-black text-white focus:bg-[#111]" placeholder="••••••••">
-                        </div>
-                        
-                        <div class="flex justify-end">
-                            <a href="#" class="text-sm text-teal-400 hover:text-teal-300 font-medium">Forgot password?</a>
-                        </div>
-
-                        <button type="submit" class="w-full bg-teal-500 hover:bg-teal-400 text-black font-bold py-3.5 rounded-xl transition shadow-[0_0_15px_rgba(20,184,166,0.3)] mt-2">Log in</button>
-                    </form>
-
-                    <div class="mt-8 text-center">
-                        <p class="text-sm font-medium text-gray-500 mb-3">Or Register</p>
-                        <p class="text-sm text-gray-400 font-medium">Don't have account? <button type="button" onclick="switchTab('register')" class="text-teal-400 hover:text-teal-300 font-bold ml-1">Create Account</button></p>
-                    </div>
-                </div>
-
-                <!-- Register Form -->
-                <div id="register-section" class="hidden transition-all duration-300">
-                    <div class="text-center mb-8">
-                        <h2 class="text-3xl font-bold text-white tracking-tight">Create Account</h2>
-                        <p class="text-sm text-gray-400 mt-2">Join VARAN to start your allocation process</p>
-                    </div>
-
-                    <form id="register-form" class="space-y-4 h-[420px] overflow-y-auto pr-3 custom-scrollbar" onsubmit="handleRegister(event)">
-                        <!-- Account Info -->
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-xs font-semibold text-gray-300 mb-1">Roll No / App No *</label>
-                                <input type="text" id="reg-rollno" required class="w-full px-3 py-2.5 rounded-lg border border-gray-800 text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none bg-black text-white focus:bg-[#111]">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-semibold text-gray-300 mb-1">Password *</label>
-                                <input type="password" id="reg-password" required class="w-full px-3 py-2.5 rounded-lg border border-gray-800 text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none bg-black text-white focus:bg-[#111]">
-                            </div>
-                        </div>
-
-                        <!-- Personal Info -->
-                        <h3 class="text-xs font-bold text-teal-500 uppercase tracking-wider border-b border-gray-800 pb-2 mt-6 mb-3">Personal Details</h3>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div class="col-span-2">
-                                <label class="block text-xs font-semibold text-gray-300 mb-1">Full Name *</label>
-                                <input type="text" id="reg-name" required class="w-full px-3 py-2.5 rounded-lg border border-gray-800 text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none bg-black text-white focus:bg-[#111]">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-semibold text-gray-300 mb-1">Date of Birth</label>
-                                <input type="date" id="reg-dob" class="w-full px-3 py-2.5 rounded-lg border border-gray-800 text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none bg-black text-white focus:bg-[#111]">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-semibold text-gray-300 mb-1">Gender</label>
-                                <select id="reg-gender" class="w-full px-3 py-2.5 rounded-lg border border-gray-800 text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none bg-black text-white focus:bg-[#111]">
-                                    <option value="Male">Male</option>
-                                    <option value="Female">Female</option>
-                                    <option value="Other">Other</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-xs font-semibold text-gray-300 mb-1">Phone *</label>
-                                <input type="text" id="reg-phone" required class="w-full px-3 py-2.5 rounded-lg border border-gray-800 text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none bg-black text-white focus:bg-[#111]">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-semibold text-gray-300 mb-1">Email *</label>
-                                <input type="email" id="reg-email" required class="w-full px-3 py-2.5 rounded-lg border border-gray-800 text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none bg-black text-white focus:bg-[#111]">
-                            </div>
-                            <div class="col-span-2">
-                                <label class="block text-xs font-semibold text-gray-300 mb-1">Category</label>
-                                <select id="reg-category" class="w-full px-3 py-2.5 rounded-lg border border-gray-800 text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none bg-black text-white focus:bg-[#111]">
-                                    <option value="OPEN">OPEN</option>
-                                    <option value="OBC-NCL">OBC-NCL</option>
-                                    <option value="SC">SC</option>
-                                    <option value="ST">ST</option>
-                                    <option value="EWS">EWS</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <!-- Parents Info -->
-                        <h3 class="text-xs font-bold text-teal-500 uppercase tracking-wider border-b border-gray-800 pb-2 mt-6 mb-3">Parent Details</h3>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-xs font-semibold text-gray-300 mb-1">Father's Name</label>
-                                <input type="text" id="reg-fname" class="w-full px-3 py-2.5 rounded-lg border border-gray-800 text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none bg-black text-white focus:bg-[#111]">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-semibold text-gray-300 mb-1">Mother's Name</label>
-                                <input type="text" id="reg-mname" class="w-full px-3 py-2.5 rounded-lg border border-gray-800 text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none bg-black text-white focus:bg-[#111]">
-                            </div>
-                        </div>
-
-                        <!-- Exam Details -->
-                        <h3 class="text-xs font-bold text-teal-500 uppercase tracking-wider border-b border-gray-800 pb-2 mt-6 mb-3">Examination Details</h3>
-                        <div>
-                            <label class="block text-xs font-semibold text-gray-300 mb-1">JEE Main Rank *</label>
-                            <input type="number" id="reg-rank" required min="1" class="w-full px-3 py-2.5 rounded-lg border border-teal-500/50 text-sm focus:ring-2 focus:ring-teal-500 outline-none bg-teal-900/20 text-white">
-                        </div>
-                        <div class="grid grid-cols-2 gap-4 mt-3">
-                            <div>
-                                <label class="block text-xs font-semibold text-gray-300 mb-1">JEE Adv Roll No (Optional)</label>
-                                <input type="text" id="reg-adv-rollno" class="w-full px-3 py-2.5 rounded-lg border border-gray-800 text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none bg-black text-white focus:bg-[#111]">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-semibold text-gray-300 mb-1">JEE Adv Rank (Optional)</label>
-                                <input type="number" id="reg-adv-rank" min="1" class="w-full px-3 py-2.5 rounded-lg border border-gray-800 text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none bg-black text-white focus:bg-[#111]">
-                            </div>
-                        </div>
-                        <p class="text-xs text-red-400 mt-2 hidden font-medium" id="adv-warn">Both Roll No and Rank are required for JEE Advance Eligibility. Inputs ignored.</p>
-
-                        <div class="pt-6 pb-2">
-                            <button type="submit" class="w-full bg-teal-500 hover:bg-teal-400 text-black font-bold py-3.5 rounded-xl transition shadow-[0_0_15px_rgba(20,184,166,0.3)]">Register Account</button>
-                        </div>
-                    </form>
-                    
-                    <div class="mt-6 text-center">
-                        <p class="text-sm text-gray-400 font-medium">Already have an account? <button type="button" onclick="switchTab('login')" class="text-teal-400 hover:text-teal-300 font-bold ml-1">Log in</button></p>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Right Side: Branding -->
-            <div class="hidden md:flex w-1/2 bg-concentric items-center justify-center relative border-l border-white/5">
-                <div class="absolute inset-0 bg-gradient-to-tr from-teal-500/10 to-transparent"></div>
-                <div class="bg-[#0a0a0a] p-12 rounded-3xl shadow-2xl flex flex-col items-center justify-center border border-white/10 z-10">
-                    <div class="w-24 h-24 bg-teal-500 rounded-2xl flex items-center justify-center text-black font-bold text-5xl shadow-[0_0_30px_rgba(20,184,166,0.4)] mb-6">
-                        V
-                    </div>
-                    <h2 class="text-2xl font-extrabold text-white tracking-tight">VARAN</h2>
-                    <p class="text-teal-400 text-sm font-medium mt-1 tracking-wide">SEAT ALLOCATION</p>
-                </div>
-            </div>
-        </div>
-    </main>
-
-    <!-- Footer -->
-    <footer class="bg-black border-t border-white/10 pt-16 pb-8" id="about">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
-                
-                <!-- Col 1: Branding & Socials -->
-                <div>
-                    <div class="flex items-center space-x-2 mb-6">
-                        <div class="w-8 h-8 bg-teal-500 rounded-lg flex items-center justify-center text-black font-bold text-lg shadow-[0_0_10px_rgba(20,184,166,0.5)]">
-                            V
-                        </div>
-                        <span class="font-extrabold text-xl tracking-tight text-white">VARAN</span>
-                    </div>
-                    
-                    <div class="flex space-x-4 mb-8">
-                        <!-- YouTube Icon -->
-                        <a href="#" class="w-10 h-10 rounded-full bg-[#111] flex items-center justify-center text-gray-400 hover:bg-gray-800 hover:text-red-500 transition border border-gray-800">
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
-                        </a>
-                        <!-- WhatsApp Icon -->
-                        <a href="#" class="w-10 h-10 rounded-full bg-[#111] flex items-center justify-center text-gray-400 hover:bg-gray-800 hover:text-green-500 transition border border-gray-800">
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-                        </a>
-                    </div>
-                    
-                    <div class="flex space-x-3">
-                        <button class="bg-[#111] border border-gray-800 text-white px-3 py-2 rounded-lg flex items-center space-x-2 hover:bg-gray-800 transition">
-                            <svg class="w-6 h-6 text-gray-300" fill="currentColor" viewBox="0 0 24 24"><path d="M17.523 15.341c-.053-.497-.333-.96-.79-1.306-.457-.347-1.042-.527-1.65-.51h-3.41c-1.328 0-2.404.992-2.404 2.215 0 1.223 1.076 2.215 2.404 2.215h1.705c.813 0 1.597.23 2.186.643.588.413.916.966.916 1.543 0 .577-.328 1.13-.916 1.543-.589.412-1.373.642-2.186.642H9.957v-1.107h3.468c.456 0 1.04-.18 1.498-.527.457-.346.737-.81.79-1.306h-5.757c-1.328 0-2.404-.992-2.404-2.215 0-1.223 1.076-2.215 2.404-2.215h3.41c.813 0 1.597-.23 2.186-.643.588-.413.916-.966.916-1.543 0-.577-.328-1.13-.916-1.543-.589-.412-1.373-.642-2.186-.642H9.957v-1.108h3.468c.456 0 1.04.18 1.498.528.457.346.737.81.79 1.306H2.106C1.516 9.605 1 10.395 1 11.238v1.524c0 .843.516 1.633 1.106 1.633h13.627v.946h-13.627C.516 15.341 0 14.551 0 13.708v-1.524c0-.843.516-1.633 1.106-1.633H15.83v-1.108h-2.36c-1.328 0-2.404-.992-2.404-2.215 0-1.223 1.076-2.215 2.404-2.215h3.41c.813 0 1.597.23 2.186.643.588.413.916.966.916 1.543 0 .577-.328 1.13-.916 1.543-.589.412-1.373.642-2.186.642h-3.468v1.108h3.468c.456 0 1.04-.18 1.498-.528.457-.346.737-.81.79-1.306H19.78C20.37 12.871 20.886 12.08 20.886 11.238v-1.524c0-.843-.516-1.633-1.106-1.633H6.15v-.946H19.78C20.37 7.135 20.886 7.925 20.886 8.768v1.524c0 .843-.516 1.633-1.106 1.633h-2.257zM24 11.238v1.524c0 .843-.516 1.633-1.106 1.633H22v-3.157h.894C23.484 11.238 24 12.028 24 11.238z"/></svg>
-                            <div class="text-left leading-tight">
-                                <div class="text-[10px] text-gray-400">GET IT ON</div>
-                                <div class="text-xs font-semibold">Google Play</div>
-                            </div>
-                        </button>
-                        <button class="bg-[#111] border border-gray-800 text-white px-3 py-2 rounded-lg flex items-center space-x-2 hover:bg-gray-800 transition">
-                            <svg class="w-6 h-6 text-gray-300" fill="currentColor" viewBox="0 0 24 24"><path d="M16.365 21.41c-.482.68-1.045 1.38-1.748 1.38-.68 0-.9-.42-1.725-.42-.803 0-1.066.42-1.726.42-.724 0-1.224-.638-1.748-1.38-1.088-1.558-1.87-4.137-1.428-5.836.262-1.023.946-1.892 1.83-2.333.823-.42 1.666-.378 2.37-.02.68.335 1.13.755 1.81.755.66 0 1.205-.503 2.012-.86 1.024-.44 2.11-.295 2.855.25.68.504 1.15 1.343 1.15 1.343s-.985.588-1.005 1.702c-.02 1.24.965 1.954.965 1.954s-.68 1.955-1.635 3.068zM15.342 6.64c.543-.66.905-1.576.804-2.48-.804.04-1.77.545-2.333 1.206-.503.587-.946 1.514-.825 2.417.886.06 1.79-.42 2.354-1.144z"/></svg>
-                            <div class="text-left leading-tight">
-                                <div class="text-[10px] text-gray-400">Download on the</div>
-                                <div class="text-xs font-semibold">App Store</div>
-                            </div>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Col 2: Quick Links -->
-                <div>
-                    <h3 class="font-bold text-white text-lg mb-6 tracking-tight">Quick Links</h3>
-                    <ul class="space-y-4">
-                        <li><a href="#" class="text-gray-400 hover:text-teal-400 font-medium text-sm transition">Home</a></li>
-                        <li><a href="#about" class="text-gray-400 hover:text-teal-400 font-medium text-sm transition">About</a></li>
-                        <li><a href="#" class="text-gray-400 hover:text-teal-400 font-medium text-sm transition">Courses</a></li>
-                        <li><a href="#" class="text-gray-400 hover:text-teal-400 font-medium text-sm transition">Test Series</a></li>
-                        <li><a href="#" class="text-gray-400 hover:text-teal-400 font-medium text-sm transition">Contact</a></li>
-                    </ul>
-                </div>
-
-                <!-- Col 3: Policies -->
-                <div>
-                    <h3 class="font-bold text-white text-lg mb-6 tracking-tight">Policies Links</h3>
-                    <ul class="space-y-4">
-                        <li><a href="#" class="text-gray-400 hover:text-teal-400 font-medium text-sm transition">Terms And Conditions</a></li>
-                        <li><a href="#" class="text-gray-400 hover:text-teal-400 font-medium text-sm transition">Privacy Policy</a></li>
-                        <li><a href="#" class="text-gray-400 hover:text-teal-400 font-medium text-sm transition">Refund Policy</a></li>
-                    </ul>
-                </div>
-
-                <!-- Col 4: Contact -->
-                <div>
-                    <h3 class="font-bold text-white text-lg mb-6 tracking-tight">Contact</h3>
-                    <ul class="space-y-5">
-                        <li>
-                            <p class="text-gray-300 font-semibold text-sm">Phone: <a href="tel:9119399104" class="text-teal-400 hover:text-teal-300">9119399104</a></p>
-                        </li>
-                        <li>
-                            <p class="text-gray-300 font-semibold text-sm">Email: <a href="mailto:cywallearn.help@gmail.com" class="text-teal-400 hover:text-teal-300">cywallearn.help@gmail.com</a></p>
-                        </li>
-                        <li>
-                            <p class="text-gray-300 font-semibold text-sm">Address: <span class="text-gray-400 font-medium">Rajasthan Udaipur</span></p>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-            
-            <div class="border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center text-sm text-gray-500 font-medium">
-                <p>&copy; 2026 VARAN. All rights reserved.</p>
-                <p class="mt-2 md:mt-0">Designed for Nexus University</p>
-            </div>
-        </div>
-    </footer>
-
-    <script>
-        const API_BASE = 'http://localhost:8080/api';
-
-        function checkAuth() {
-            const user = JSON.parse(localStorage.getItem('user'));
-            if(user) {
-                if(user.role === 'admin') window.location.href = 'admin.html';
-                else window.location.href = 'dashboard.html';
-            }
-        }
-        checkAuth(); // Redirect if already logged in
-
-        function switchTab(tab) {
-            const loginSection = document.getElementById('login-section');
-            const regSection = document.getElementById('register-section');
-            const err = document.getElementById('error-message');
-            const suc = document.getElementById('success-message');
-            
-            err.classList.add('hidden');
-            suc.classList.add('hidden');
-
-            if (tab === 'login') {
-                loginSection.classList.remove('hidden');
-                regSection.classList.add('hidden');
-            } else {
-                regSection.classList.remove('hidden');
-                loginSection.classList.add('hidden');
-            }
-        }
-
-        function showMessage(type, msg) {
-            const err = document.getElementById('error-message');
-            const suc = document.getElementById('success-message');
-            if (type === 'error') {
-                err.textContent = msg;
-                err.classList.remove('hidden');
-                suc.classList.add('hidden');
-            } else {
-                suc.textContent = msg;
-                suc.classList.remove('hidden');
-                err.classList.add('hidden');
-            }
-        }
-
-        async function handleLogin(e) {
-            e.preventDefault();
-            const rollno = document.getElementById('login-rollno').value;
-            const password = document.getElementById('login-password').value;
-
-            try {
-                const res = await fetch(`${API_BASE}/login`, {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({rollno, password})
-                });
-                const data = await res.json();
-                
-                if(!res.ok) throw new Error(data.error || 'Login failed');
-                
-                localStorage.setItem('user', JSON.stringify(data.user));
-                
-                if(data.user.role === 'admin') window.location.href = 'admin.html';
-                else window.location.href = 'dashboard.html';
-                
-            } catch (err) {
-                showMessage('error', err.message);
-            }
-        }
-
-        async function handleRegister(e) {
-            e.preventDefault();
-            
-            let adv_rollno = document.getElementById('reg-adv-rollno').value.trim();
-            let adv_rank = document.getElementById('reg-adv-rank').value.trim();
-
-            if ((adv_rollno && !adv_rank) || (!adv_rollno && adv_rank)) {
-                adv_rollno = '';
-                adv_rank = '';
-                document.getElementById('adv-warn').classList.remove('hidden');
-            }
-
-            const payload = {
-                rollno: document.getElementById('reg-rollno').value,
-                password: document.getElementById('reg-password').value,
-                name: document.getElementById('reg-name').value,
-                dob: document.getElementById('reg-dob').value,
-                gender: document.getElementById('reg-gender').value,
-                phone: document.getElementById('reg-phone').value,
-                email: document.getElementById('reg-email').value,
-                category: document.getElementById('reg-category').value,
-                f_name: document.getElementById('reg-fname').value,
-                m_name: document.getElementById('reg-mname').value,
-                jee_rank: document.getElementById('reg-rank').value,
-                jee_adv_rollno: adv_rollno,
-                jee_adv_rank: adv_rank
-            };
-
-            try {
-                const res = await fetch(`${API_BASE}/register`, {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify(payload)
-                });
-                const data = await res.json();
-                
-                if(!res.ok) throw new Error(data.error || 'Registration failed');
-                
-                showMessage('success', "Registration Successful! Please login.");
-                setTimeout(() => switchTab('login'), 2000);
-            } catch (err) {
-                showMessage('error', err.message);
-            }
-        }
-    </script>
+        const config = await configRes.json();
+        const branches = await branchesRes.json();
+        
+        const roundText = `Round ${config.current_round}`;
+        document.getElementById('hero-round-text').textContent = roundText + ' Live';
+        
+        const container = document.getElementById('live-branches-container');
+        container.innerHTML = '';
+        branches.forEach(b => {
+            const row = document.createElement('div');
+            row.className = 'bg-zinc-900 rounded-xl p-4 flex justify-between items-center border border-zinc-800';
+            row.innerHTML = `
+                <div class="text-white font-medium text-sm">${b.branch_name}</div>
+                <div class="text-teal-400 font-bold text-sm bg-teal-500/10 px-3 py-1 rounded-full">${b.total_capacity} Seats</div>
+            `;
+            container.appendChild(row);
+        });
+    } catch (err) {
+        console.error('Error fetching dynamic data:', err);
+        document.getElementById('live-branches-container').innerHTML = '<div class="text-red-400 text-xs text-center py-4">Failed to load data</div>';
+    }
+}
+</script>
 </body>
 </html>
