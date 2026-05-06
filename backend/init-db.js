@@ -21,7 +21,6 @@ async function init() {
         console.log('Connected!');
 
         const schemaPath = path.join(__dirname, '../sql/schema.sql');
-        const proceduresPath = path.join(__dirname, '../sql/procedures.sql');
 
         console.log('Reading schema.sql...');
         let schemaSql = fs.readFileSync(schemaPath, 'utf8');
@@ -31,16 +30,21 @@ async function init() {
         await connection.query(schemaSql);
         console.log('Schema created successfully.');
 
-        console.log('Reading procedures.sql...');
-        let proceduresSql = fs.readFileSync(proceduresPath, 'utf8');
-        proceduresSql = proceduresSql.replace(/USE\s+.*;/gi, ''); // Remove USE statement
-        proceduresSql = proceduresSql.replace(/DELIMITER\s+\$\$\s*/gi, ''); // Remove DELIMITER $$
-        proceduresSql = proceduresSql.replace(/DELIMITER\s+;\s*/gi, '');    // Remove DELIMITER ;
-        proceduresSql = proceduresSql.replace(/\$\$/g, ';');                // Replace $$ with ;
-        
-        console.log('Executing procedures...');
-        await connection.query(proceduresSql);
-        console.log('Procedures created successfully.');
+        // Load all PL/SQL components in dependency order: functions → triggers → procedures
+        const plsqlFiles = ['functions.sql', 'triggers.sql', 'procedures.sql'];
+        for (const file of plsqlFiles) {
+            console.log(`Reading ${file}...`);
+            const filePath = path.join(__dirname, '../sql/', file);
+            let sql = fs.readFileSync(filePath, 'utf8');
+            sql = sql.replace(/USE\s+.*;/gi, '');
+            sql = sql.replace(/DELIMITER\s+\$\$\s*/gi, '');
+            sql = sql.replace(/DELIMITER\s+;\s*/gi, '');
+            sql = sql.replace(/\$\$/g, ';');
+            
+            console.log(`Executing ${file}...`);
+            await connection.query(sql);
+            console.log(`${file} loaded successfully.`);
+        }
 
         await connection.end();
         console.log('Database initialization complete!');

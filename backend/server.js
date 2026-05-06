@@ -145,7 +145,8 @@ app.put('/api/user/update', async (req, res) => {
 // --- Branches & Choices Routes ---
 app.get('/api/branches', async (req, res) => {
     try {
-        const [rows] = await pool.query("SELECT * FROM branches ORDER BY branch_id");
+        // Uses get_available_seats() function to show live availability
+        const [rows] = await pool.query("SELECT *, get_available_seats(branch_id) as available_seats FROM branches ORDER BY branch_id");
         res.json(rows);
     } catch (err) {
         res.status(500).json({ error: "Database error." });
@@ -268,18 +269,21 @@ app.post('/api/admin/reset', async (req, res) => {
 
 app.post('/api/admin/init-procedures', async (req, res) => {
     try {
-        const sqlPath = path.join(__dirname, '../sql/procedures.sql');
-        let sql = fs.readFileSync(sqlPath, 'utf8');
-        sql = sql.replace(/USE\s+.*;/gi, '');
-        sql = sql.replace(/DELIMITER\s+\$\$\s*/gi, '');
-        sql = sql.replace(/DELIMITER\s+;\s*/gi, '');
-        sql = sql.replace(/\$\$/g, ';');
-        
-        await pool.query(sql);
-        res.json({ message: "Stored procedures created successfully." });
+        const sqlFiles = ['functions.sql', 'triggers.sql', 'procedures.sql'];
+        for (const file of sqlFiles) {
+            const sqlPath = path.join(__dirname, '../sql/', file);
+            let sql = fs.readFileSync(sqlPath, 'utf8');
+            sql = sql.replace(/USE\s+.*;/gi, '');
+            sql = sql.replace(/DELIMITER\s+\$\$\s*/gi, '');
+            sql = sql.replace(/DELIMITER\s+;\s*/gi, '');
+            sql = sql.replace(/\$\$/g, ';');
+            await pool.query(sql);
+            console.log(`Loaded ${file} successfully.`);
+        }
+        res.json({ message: "Functions, triggers, and procedures created successfully." });
     } catch (err) {
-        console.error("Error creating procedures:", err);
-        res.status(500).json({ error: "Failed to create stored procedures: " + err.message });
+        console.error("Error creating PL/SQL components:", err);
+        res.status(500).json({ error: "Failed to create PL/SQL components: " + err.message });
     }
 });
 
@@ -291,23 +295,19 @@ app.post('/api/student/action', async (req, res) => {
         const [config] = await conn.query("SELECT current_round FROM system_config LIMIT 1");
         const roundNo = config[0].current_round;
 
-        const [users] = await conn.query("SELECT currentSeatID, isExited, isFrozen FROM users WHERE id = ?", [user_id]);
+        // Uses is_eligible_for_allocation() function to check eligibility
+        const [users] = await conn.query("SELECT currentSeatID, isExited, isFrozen, is_eligible_for_allocation(id) as is_eligible FROM users WHERE id = ?", [user_id]);
         if (users.length === 0) return res.status(404).json({ error: "User not found." });
         
         const user = users[0];
-        if (user.isExited || user.isFrozen) {
+        if (!user.is_eligible) {
             await conn.rollback();
             return res.status(400).json({ error: "You have already completed your process." });
         }
 
         if (action === 'Exit') {
+            // Trigger trg_before_user_exit handles: capacity release, seatID reset, audit log
             await conn.query("UPDATE users SET isExited = TRUE WHERE id = ?", [user_id]);
-            if (user.currentSeatID) {
-                await conn.query("UPDATE branches SET remaining_capacity = remaining_capacity + 1 WHERE branch_id = ?", [user.currentSeatID]);
-                // Release seat completely
-                await conn.query("UPDATE users SET currentSeatID = NULL WHERE id = ?", [user_id]);
-            }
-            await conn.query("INSERT INTO audit_logs (user_id, round_no, action, branch_id) VALUES (?, ?, 'Exited', NULL)", [user_id, roundNo]);
             await conn.commit();
             return res.json({ message: "Successfully exited. Payment Refunded.", refunded: true });
         } 
@@ -344,8 +344,10 @@ app.post('/api/student/action', async (req, res) => {
 
 app.get('/api/results/:user_id', async (req, res) => {
     try {
+        // Uses get_student_status() function to get allocation status
         const [users] = await pool.query(`
-            SELECT u.currentSeatID, u.isExited, u.isFrozen, u.has_paid, b.branch_name 
+            SELECT u.currentSeatID, u.isExited, u.isFrozen, u.has_paid, b.branch_name,
+                   get_student_status(u.id) as status
             FROM users u
             LEFT JOIN branches b ON u.currentSeatID = b.branch_id
             WHERE u.id = ?
@@ -382,6 +384,7 @@ app.get('/api/results/:user_id', async (req, res) => {
             alloted: true, 
             data: {
                 branch_name: user.branch_name,
+                status: user.status,
                 isFrozen: user.isFrozen,
                 isExited: user.isExited,
                 has_paid: user.has_paid

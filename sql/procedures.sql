@@ -14,11 +14,12 @@ BEGIN
     DECLARE v_seatAllocatedThisRound BOOLEAN;
     DECLARE v_existing_log INT;
 
+    -- Uses the is_eligible_for_allocation() function for eligibility check
     DECLARE cur_users CURSOR FOR 
         SELECT u.id, u.currentSeatID
         FROM users u
         JOIN user_exam_details e ON u.id = e.user_id
-        WHERE u.isExited = FALSE AND u.isFrozen = FALSE
+        WHERE is_eligible_for_allocation(u.id) = TRUE
         ORDER BY e.jee_rank ASC;
 
     DECLARE CONTINUE HANDLER FOR NOT FOUND SET v_done_users = TRUE;
