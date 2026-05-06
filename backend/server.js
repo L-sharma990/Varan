@@ -266,6 +266,23 @@ app.post('/api/admin/reset', async (req, res) => {
     }
 });
 
+app.post('/api/admin/init-procedures', async (req, res) => {
+    try {
+        const sqlPath = path.join(__dirname, '../sql/procedures.sql');
+        let sql = fs.readFileSync(sqlPath, 'utf8');
+        sql = sql.replace(/USE\s+.*;/gi, '');
+        sql = sql.replace(/DELIMITER\s+\$\$\s*/gi, '');
+        sql = sql.replace(/DELIMITER\s+;\s*/gi, '');
+        sql = sql.replace(/\$\$/g, ';');
+        
+        await pool.query(sql);
+        res.json({ message: "Stored procedures created successfully." });
+    } catch (err) {
+        console.error("Error creating procedures:", err);
+        res.status(500).json({ error: "Failed to create stored procedures: " + err.message });
+    }
+});
+
 app.post('/api/student/action', async (req, res) => {
     const { user_id, action } = req.body; // 'Exit', 'Freeze', 'Float'
     const conn = await pool.getConnection();
