@@ -36,10 +36,12 @@
                 <div><label class="block text-xs font-bold text-zinc-500 mb-1.5">ROLL NUMBER</label><input type="text" id="login-rollno" required class="inp" placeholder="e.g. 202601"></div>
                 <div class="relative">
                     <label class="block text-xs font-bold text-zinc-500 mb-1.5">PASSWORD</label>
-                    <input type="password" id="login-password" required class="inp pr-10" placeholder="••••••••">
-                    <button type="button" onclick="togglePassword('login-password', this)" class="absolute right-3 top-[32px] text-teal-400 hover:text-teal-300 transition-colors">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="eye-icon"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                    </button>
+                    <div class="relative">
+                        <input type="password" id="login-password" required class="inp" style="padding-right:3rem" placeholder="••••••••">
+                        <button type="button" onclick="togglePassword('login-password', this)" style="position:absolute;right:12px;top:50%;transform:translateY(-50%)" class="text-teal-400 hover:text-teal-300 transition-colors flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="eye-icon"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                        </button>
+                    </div>
                 </div>
                 <button type="submit" class="btn-primary w-full mt-2 py-3 text-base">Log In</button>
             </form>

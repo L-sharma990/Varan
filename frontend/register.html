@@ -18,6 +18,8 @@
         .fade-in{opacity:0;transform:translateY(24px);transition:all .7s cubic-bezier(.16,1,.3,1)}
         .fade-in.show{opacity:1;transform:translateY(0)}
         .custom-scrollbar::-webkit-scrollbar{width:5px}.custom-scrollbar::-webkit-scrollbar-thumb{background:#27272a;border-radius:3px}
+        input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(1) sepia(1) saturate(3) hue-rotate(130deg);opacity:0.8;cursor:pointer;transition:opacity .2s}
+        input[type="date"]::-webkit-calendar-picker-indicator:hover{opacity:1}
     </style>
 </head>
 <body class="flex flex-col min-h-screen relative py-20 px-6">
@@ -93,11 +95,14 @@
                 <div class="form-step hidden" id="step-4">
                     <h4 class="text-lg font-bold text-white mb-4">Security & Payment</h4>
                     <div class="space-y-4">
-                        <div class="relative"><label class="block text-[11px] font-bold text-zinc-500 mb-1.5">CREATE PASSWORD *</label>
-                            <input type="password" id="reg-password" required pattern="^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{6,}$" title="Password must be at least 6 characters long and include one capital letter, one number, and one special character" class="inp pr-10" placeholder="••••••••">
-                            <button type="button" onclick="togglePassword('reg-password', this)" class="absolute right-3 top-[32px] text-teal-400 hover:text-teal-300 transition-colors">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="eye-icon"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                            </button>
+                        <div class="relative">
+                            <label class="block text-[11px] font-bold text-zinc-500 mb-1.5">CREATE PASSWORD *</label>
+                            <div class="relative">
+                                <input type="password" id="reg-password" required pattern="^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{6,}$" title="Password must be at least 6 characters long and include one capital letter, one number, and one special character" class="inp" style="padding-right:3rem" placeholder="••••••••">
+                                <button type="button" onclick="togglePassword('reg-password', this)" style="position:absolute;right:12px;top:50%;transform:translateY(-50%)" class="text-teal-400 hover:text-teal-300 transition-colors flex items-center justify-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="eye-icon"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                                </button>
+                            </div>
                         </div>
                         
                         <div class="p-4 rounded-xl border border-teal-500/30 bg-teal-500/5 mt-4">
