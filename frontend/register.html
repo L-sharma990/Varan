@@ -52,11 +52,11 @@
                     <h4 class="text-lg font-bold text-white mb-4">Personal Details</h4>
                     <div class="grid grid-cols-2 gap-4">
                         <div class="col-span-2"><label class="block text-[11px] font-bold text-zinc-500 mb-1.5">FULL NAME *</label><input type="text" id="reg-name" required class="inp"></div>
-                        <div><label class="block text-[11px] font-bold text-zinc-500 mb-1.5">DOB</label><input type="date" id="reg-dob" class="inp text-zinc-500"></div>
-                        <div><label class="block text-[11px] font-bold text-zinc-500 mb-1.5">GENDER</label><select id="reg-gender" class="inp text-zinc-400"><option value="Male">Male</option><option value="Female">Female</option><option value="Other">Other</option></select></div>
+                        <div><label class="block text-[11px] font-bold text-zinc-500 mb-1.5">DOB</label><input type="date" id="reg-dob" class="inp text-white"></div>
+                        <div><label class="block text-[11px] font-bold text-zinc-500 mb-1.5">GENDER</label><select id="reg-gender" class="inp text-white"><option value="Male">Male</option><option value="Female">Female</option><option value="Other">Other</option></select></div>
                         <div><label class="block text-[11px] font-bold text-zinc-500 mb-1.5">PHONE *</label><input type="text" id="reg-phone" required pattern="^[6-9]\d{9}$" title="Enter a valid 10-digit Indian phone number starting with 6, 7, 8, or 9" class="inp" placeholder="e.g. 9876543210"></div>
                         <div><label class="block text-[11px] font-bold text-zinc-500 mb-1.5">EMAIL *</label><input type="email" id="reg-email" required pattern="[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,}$" title="Enter a valid email address (e.g. user@domain.com)" class="inp" placeholder="e.g. name@example.com"></div>
-                        <div class="col-span-2"><label class="block text-[11px] font-bold text-zinc-500 mb-1.5">CATEGORY</label><select id="reg-category" class="inp text-zinc-400"><option value="OPEN">OPEN</option><option value="OBC-NCL">OBC-NCL</option><option value="SC">SC</option><option value="ST">ST</option><option value="EWS">EWS</option></select></div>
+                        <div class="col-span-2"><label class="block text-[11px] font-bold text-zinc-500 mb-1.5">CATEGORY</label><select id="reg-category" class="inp text-white"><option value="OPEN">OPEN</option><option value="OBC-NCL">OBC-NCL</option><option value="SC">SC</option><option value="ST">ST</option><option value="EWS">EWS</option></select></div>
                     </div>
                     <div class="flex justify-end mt-8 border-t border-zinc-800 pt-4">
                         <button type="button" class="btn-primary py-2 px-6" onclick="nextStep(2)">Next →</button>
@@ -93,7 +93,12 @@
                 <div class="form-step hidden" id="step-4">
                     <h4 class="text-lg font-bold text-white mb-4">Security & Payment</h4>
                     <div class="space-y-4">
-                        <div><label class="block text-[11px] font-bold text-zinc-500 mb-1.5">CREATE PASSWORD *</label><input type="password" id="reg-password" required pattern="^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{6,}$" title="Password must be at least 6 characters long and include one capital letter, one number, and one special character" class="inp" placeholder="••••••••"></div>
+                        <div class="relative"><label class="block text-[11px] font-bold text-zinc-500 mb-1.5">CREATE PASSWORD *</label>
+                            <input type="password" id="reg-password" required pattern="^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{6,}$" title="Password must be at least 6 characters long and include one capital letter, one number, and one special character" class="inp pr-10" placeholder="••••••••">
+                            <button type="button" onclick="togglePassword('reg-password', this)" class="absolute right-3 top-[32px] text-teal-400 hover:text-teal-300 transition-colors">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="eye-icon"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                            </button>
+                        </div>
                         
                         <div class="p-4 rounded-xl border border-teal-500/30 bg-teal-500/5 mt-4">
                             <div class="flex items-center justify-between mb-2">
@@ -115,6 +120,18 @@
 
     <script src="config.js"></script>
     <script>
+
+function togglePassword(id, btn) {
+    const input = document.getElementById(id);
+    const icon = btn.querySelector('.eye-icon');
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line>';
+    } else {
+        input.type = 'password';
+        icon.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle>';
+    }
+}
 
 function checkAuth(){const u=JSON.parse(localStorage.getItem('user'));if(u){u.role==='admin'?window.location.href='admin.html':window.location.href='dashboard.html'}}
 checkAuth();
