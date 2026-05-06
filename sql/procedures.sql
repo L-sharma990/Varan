@@ -14,7 +14,6 @@ BEGIN
     DECLARE v_seatAllocatedThisRound BOOLEAN;
     DECLARE v_existing_log INT;
 
-    -- Cursor for users
     DECLARE cur_users CURSOR FOR 
         SELECT u.id, u.currentSeatID
         FROM users u
@@ -24,7 +23,6 @@ BEGIN
 
     DECLARE CONTINUE HANDLER FOR NOT FOUND SET v_done_users = TRUE;
 
-    -- Get current round
     SELECT current_round INTO v_roundNo FROM system_config LIMIT 1;
 
     OPEN cur_users;
@@ -37,7 +35,6 @@ BEGIN
         
         SET v_seatAllocatedThisRound = FALSE;
         
-        -- Inner block for choices
         BEGIN
             DECLARE v_choice_branch_id INT;
             DECLARE v_done_choices INT DEFAULT FALSE;
