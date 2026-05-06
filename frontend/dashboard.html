@@ -367,8 +367,16 @@
             document.getElementById('action-panel').classList.add('hidden');
             document.getElementById('history-panel').classList.add('hidden');
             document.getElementById('user-status-badge').classList.add('hidden');
+            
+            // Reset action buttons and messages
+            document.getElementById('action-buttons').classList.remove('hidden');
+            document.getElementById('btn-freeze').classList.remove('hidden');
+            document.getElementById('btn-float').classList.remove('hidden');
+            document.getElementById('btn-exit').classList.remove('hidden');
+            document.getElementById('action-msg').textContent = '';
 
             try {
+                if (!config.current_round) await fetchConfig();
                 const res = await fetch(`${API_BASE}/results/${user.id}`);
                 const data = await res.json();
 
@@ -405,12 +413,18 @@
                 const isExited = data.isExited || (data.data && data.data.isExited);
                 const isFrozen = data.data && data.data.isFrozen;
                 
+                // Check if user has already floated in the current round
+                const hasFloatedCurrentRound = data.history && data.history.some(log => log.round_no === config.current_round && log.action === 'Floated');
+
                 if (isExited) {
                     badge.textContent = "Process Exited";
                     badge.className = "px-3 py-1 bg-red-900/50 text-red-400 border border-red-800 rounded-full text-xs font-bold uppercase tracking-wide";
                 } else if (isFrozen) {
                     badge.textContent = "Seat Frozen";
                     badge.className = "px-3 py-1 bg-blue-900/50 text-blue-400 border border-blue-800 rounded-full text-xs font-bold uppercase tracking-wide";
+                } else if (hasFloatedCurrentRound) {
+                    badge.textContent = "Floated";
+                    badge.className = "px-3 py-1 bg-yellow-900/50 text-yellow-400 border border-yellow-800 rounded-full text-xs font-bold uppercase tracking-wide";
                 } else {
                     badge.textContent = "Active";
                     badge.className = "px-3 py-1 bg-teal-900/50 text-teal-400 border border-teal-800 rounded-full text-xs font-bold uppercase tracking-wide";
@@ -421,10 +435,17 @@
                     if (!isExited) {
                         document.querySelector('#result-none h3').textContent = "No Seat Allotted";
                         document.querySelector('#result-none p').textContent = "You have not been allotted a seat in the current round. You will automatically be considered in the next round.";
-                        document.getElementById('action-panel').classList.remove('hidden');
-                        document.getElementById('btn-freeze').classList.add('hidden');
-                        document.getElementById('btn-float').classList.add('hidden');
-                        document.getElementById('btn-exit').classList.remove('hidden');
+                        
+                        if (!hasFloatedCurrentRound) {
+                            document.getElementById('action-panel').classList.remove('hidden');
+                            document.getElementById('btn-freeze').classList.add('hidden');
+                            document.getElementById('btn-float').classList.add('hidden');
+                            document.getElementById('btn-exit').classList.remove('hidden');
+                        } else {
+                            document.getElementById('action-panel').classList.remove('hidden');
+                            document.getElementById('action-buttons').classList.add('hidden');
+                            document.getElementById('action-msg').textContent = "You have chosen to Float. Your status will be updated in the next round.";
+                        }
                     } else {
                         document.querySelector('#result-none h3').textContent = "Process Exited";
                         document.querySelector('#result-none p').textContent = "You have withdrawn from the allocation process and received a refund. You are no longer participating in future rounds.";
@@ -434,7 +455,7 @@
                     document.getElementById('res-branch').textContent = data.data.branch_name;
                     document.getElementById('res-paid').textContent = data.data.has_paid ? "Paid ₹1" : "Pending";
                     
-                    if (!isExited && !isFrozen) {
+                    if (!isExited && !isFrozen && !hasFloatedCurrentRound) {
                         document.getElementById('action-panel').classList.remove('hidden');
                         document.getElementById('btn-freeze').classList.remove('hidden');
                         document.getElementById('btn-float').classList.remove('hidden');
@@ -443,6 +464,10 @@
                         document.getElementById('action-panel').classList.remove('hidden');
                         document.getElementById('action-buttons').classList.add('hidden');
                         document.getElementById('action-msg').textContent = "You have frozen this seat. An allotment letter will be available soon.";
+                    } else if (hasFloatedCurrentRound) {
+                        document.getElementById('action-panel').classList.remove('hidden');
+                        document.getElementById('action-buttons').classList.add('hidden');
+                        document.getElementById('action-msg').textContent = "You have chosen to Float. You will be considered for an upgrade in the next round.";
                     }
                 }
             } catch(e) { console.error(e); }
