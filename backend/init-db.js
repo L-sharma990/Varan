@@ -10,7 +10,8 @@ async function init() {
         password: process.env.DB_PASSWORD || process.env.MYSQLPASSWORD || '',
         database: process.env.DB_NAME || process.env.MYSQLDATABASE || 'seat_allocation_v2_db',
         port: parseInt(process.env.DB_PORT || process.env.MYSQLPORT) || 3306,
-        multipleStatements: true
+        multipleStatements: true,
+        ssl: { rejectUnauthorized: false }
     };
 
     console.log(`Connecting to database at ${config.host}:${config.port}...`);
@@ -23,15 +24,19 @@ async function init() {
         const proceduresPath = path.join(__dirname, '../sql/procedures.sql');
 
         console.log('Reading schema.sql...');
-        const schemaSql = fs.readFileSync(schemaPath, 'utf8');
+        let schemaSql = fs.readFileSync(schemaPath, 'utf8');
+        schemaSql = schemaSql.replace(/USE\s+.*;/gi, ''); // Remove USE statement
         
         console.log('Executing schema...');
-        // We might need to handle the "USE database" statement if it's there
         await connection.query(schemaSql);
         console.log('Schema created successfully.');
 
         console.log('Reading procedures.sql...');
-        const proceduresSql = fs.readFileSync(proceduresPath, 'utf8');
+        let proceduresSql = fs.readFileSync(proceduresPath, 'utf8');
+        proceduresSql = proceduresSql.replace(/USE\s+.*;/gi, ''); // Remove USE statement
+        proceduresSql = proceduresSql.replace(/DELIMITER\s+\$\$\s*/gi, ''); // Remove DELIMITER $$
+        proceduresSql = proceduresSql.replace(/DELIMITER\s+;\s*/gi, '');    // Remove DELIMITER ;
+        proceduresSql = proceduresSql.replace(/\$\$/g, ';');                // Replace $$ with ;
         
         console.log('Executing procedures...');
         await connection.query(proceduresSql);
