@@ -210,6 +210,10 @@
 </footer>
 
 <script>
+const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+    ? 'http://localhost:8080/api' 
+    : 'https://varan-production.up.railway.app/api';
+
 document.addEventListener('DOMContentLoaded',()=>{
     const obs=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('show')})},{threshold:.1});
     document.querySelectorAll('.fade-in').forEach(el=>obs.observe(el));
@@ -219,8 +223,8 @@ document.addEventListener('DOMContentLoaded',()=>{
 async function fetchDynamicData() {
     try {
         const [configRes, branchesRes] = await Promise.all([
-            fetch('http://localhost:8080/api/config'),
-            fetch('http://localhost:8080/api/branches')
+            fetch(`${API_BASE}/config`),
+            fetch(`${API_BASE}/branches`)
         ]);
         
         const config = await configRes.json();

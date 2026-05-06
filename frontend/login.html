@@ -42,12 +42,15 @@
     </div>
 
 <script>
-const API_BASE='http://localhost:8080/api';
-function checkAuth(){const u=JSON.parse(localStorage.getItem('user'));if(u){u.role==='admin'?window.location.href='admin.html':window.location.href='dashboard.html'}}
-checkAuth();
-function showMessage(m){const e=document.getElementById('error-message');e.textContent=m;e.classList.remove('hidden')}
-async function handleLogin(e){e.preventDefault();const rollno=document.getElementById('login-rollno').value,password=document.getElementById('login-password').value;try{const r=await fetch(`${API_BASE}/login`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({rollno,password})});const d=await r.json();if(!r.ok)throw new Error(d.error||'Login failed');localStorage.setItem('user',JSON.stringify(d.user));d.user.role==='admin'?window.location.href='admin.html':window.location.href='dashboard.html'}catch(err){showMessage(err.message)}}
-document.addEventListener('DOMContentLoaded',()=>{const obs=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('show')})},{threshold:.1});document.querySelectorAll('.fade-in').forEach(el=>obs.observe(el))});
+        const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+            ? 'http://localhost:8080/api' 
+            : 'https://varan-production.up.railway.app/api';
+
+        function checkAuth(){const u=JSON.parse(localStorage.getItem('user'));if(u){u.role==='admin'?window.location.href='admin.html':window.location.href='dashboard.html'}}
+        checkAuth();
+        function showMessage(m){const e=document.getElementById('error-message');e.textContent=m;e.classList.remove('hidden')}
+        async function handleLogin(e){e.preventDefault();const rollno=document.getElementById('login-rollno').value,password=document.getElementById('login-password').value;try{const r=await fetch(`${API_BASE}/login`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({rollno,password})});const d=await r.json();if(!r.ok)throw new Error(d.error||'Login failed');localStorage.setItem('user',JSON.stringify(d.user));d.user.role==='admin'?window.location.href='admin.html':window.location.href='dashboard.html'}catch(err){showMessage(err.message)}}
+        document.addEventListener('DOMContentLoaded',()=>{const obs=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('show')})},{threshold:.1});document.querySelectorAll('.fade-in').forEach(el=>obs.observe(el))});
 </script>
 </body>
 </html>
