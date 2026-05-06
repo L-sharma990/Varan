@@ -41,10 +41,9 @@
         </div>
     </div>
 
-<script>
-        const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
-            ? 'http://localhost:8080/api' 
-            : 'https://varan-production.up.railway.app/api';
+    <script src="config.js"></script>
+    <script>
+
 
         function checkAuth(){const u=JSON.parse(localStorage.getItem('user'));if(u){u.role==='admin'?window.location.href='admin.html':window.location.href='dashboard.html'}}
         checkAuth();

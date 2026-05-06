@@ -117,13 +117,18 @@
                     </div>
                 </div>
 
-                <!-- Danger Zone -->
-                <div class="bg-[#0a0a0a] rounded-xl shadow-sm border border-red-900/50 p-6 flex flex-col justify-between">
-                    <div>
-                        <h2 class="text-xl font-bold text-red-500 mb-4 border-b border-red-900/30 pb-2">Danger Zone</h2>
-                        <p class="text-xs text-gray-400 mb-4">Reset the entire system back to Round 1. This clears all allocations, resets branches, and puts all students back to 'Unallocated' status.</p>
-                    </div>
-                    <div class="mt-auto">
+                <!-- System Maintenance -->
+                <div class="bg-[#0a0a0a] rounded-xl shadow-sm border border-gray-800 p-6">
+                    <h2 class="text-xl font-bold text-gray-200 mb-4 border-b pb-2">System Maintenance</h2>
+                    <p class="text-xs text-gray-500 mb-6">Initialize or reset core system components.</p>
+                    
+                    <div class="space-y-4">
+                        <!-- Init DB Components -->
+                        <button onclick="initDatabase()" class="w-full bg-indigo-900/20 hover:bg-indigo-900/40 border border-indigo-800 text-indigo-400 font-bold py-3 rounded-lg transition text-sm flex justify-center items-center">
+                            Initialize DB (Triggers/Functions)
+                        </button>
+                        
+                        <!-- Reset System -->
                         <button onclick="resetSystem()" class="w-full bg-red-900/20 hover:bg-red-900/40 border border-red-800 text-red-500 hover:text-red-400 font-bold py-3 rounded-lg transition text-sm flex justify-center items-center">
                             Reset System to Round 1
                         </button>
@@ -133,10 +138,9 @@
         </div>
     </main>
 
+        <script src="config.js"></script>
     <script>
-        const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
-        ? 'http://localhost:8080/api' 
-        : 'https://varan-production.up.railway.app/api';
+
         const user = JSON.parse(localStorage.getItem('user'));
         if (!user || user.role !== 'admin') window.location.href = 'index.html';
 
@@ -229,6 +233,16 @@
                     fetchConfig();
                 } else showAlert(result.error, true);
             } catch(e) { showAlert("Engine Error", true); }
+        }
+
+        async function initDatabase() {
+            if(!confirm("This will recreate all Triggers, Functions, and Procedures in the database. Are you sure?")) return;
+            try {
+                const res = await fetch(`${API_BASE}/admin/init-procedures`, { method: 'POST' });
+                const result = await res.json();
+                if(res.ok) showAlert(result.message);
+                else showAlert(result.error, true);
+            } catch(e) { showAlert("Initialization Error", true); }
         }
 
         async function resetSystem() {

@@ -257,13 +257,19 @@ app.post('/api/admin/allocate', async (req, res) => {
 app.post('/api/admin/reset', async (req, res) => {
     try {
         const sqlPath = path.join(__dirname, '../sql/reset_demo.sql');
-        const sqlScript = fs.readFileSync(sqlPath, 'utf8');
+        let sqlScript = fs.readFileSync(sqlPath, 'utf8');
         
+        // Strip USE statements and DELIMITERS for compatibility with production/Railway
+        sqlScript = sqlScript.replace(/USE\s+.*;/gi, '');
+        sqlScript = sqlScript.replace(/DELIMITER\s+\$\$\s*/gi, '');
+        sqlScript = sqlScript.replace(/DELIMITER\s+;\s*/gi, '');
+        sqlScript = sqlScript.replace(/\$\$/g, ';');
+
         await pool.query(sqlScript);
         res.json({ message: "System successfully reset to Round 1." });
     } catch (err) {
         console.error("Error executing reset_demo.sql:", err);
-        res.status(500).json({ error: "Failed to reset system database." });
+        res.status(500).json({ error: "Failed to reset system database: " + err.message });
     }
 });
 
